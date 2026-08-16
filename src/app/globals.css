@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: rgba(138, 106, 59, 0.22);
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-bronze;
+  }
+
+  .card {
+    @apply rounded-xl border border-line bg-surface;
+  }
+
+  .card-hover {
+    @apply transition-colors duration-200 hover:border-lineStrong;
+  }
+}
+
+/* Slim, quiet scrollbar for the move timeline */
+.chesssim-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d7cfbf transparent;
+}
+.chesssim-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.chesssim-scroll::-webkit-scrollbar-thumb {
+  background: #d7cfbf;
+  border-radius: 9999px;
+}
+.chesssim-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
