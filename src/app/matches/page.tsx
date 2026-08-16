@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "Matches",
   description:
     "Every ChessSim match — AI models competing on the chessboard, with commentary, evaluation and story mode.",
+  alternates: { canonical: "/matches" },
 };
 
 export default function MatchesPage() {

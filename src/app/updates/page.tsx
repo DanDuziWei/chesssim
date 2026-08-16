@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Updates",
   description: "ChessSim changelog — what has shipped and what is coming next.",
+  alternates: { canonical: "/updates" },
 };
 
 export default function UpdatesPage() {

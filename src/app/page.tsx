@@ -1,6 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { getAgent, getFeaturedMatch } from "@/data";
 import { MatchCard } from "@/components/MatchCard";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const WHY = [
   {

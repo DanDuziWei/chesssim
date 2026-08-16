@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "ChessSim is an AI-powered chess simulation & entertainment platform. Watch intelligence play.",
+  alternates: { canonical: "/about" },
 };
 
 const LOOP = [

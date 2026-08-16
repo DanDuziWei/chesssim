@@ -26,6 +26,13 @@ export async function generateMetadata({
   return {
     title: `${match.title} — ${match.theme}`,
     description: match.summary,
+    alternates: { canonical: `/match/${match.slug}` },
+    openGraph: {
+      title: `${match.title} — ${match.theme}`,
+      description: match.summary,
+      url: `/match/${match.slug}`,
+      type: "article",
+    },
   };
 }
 
