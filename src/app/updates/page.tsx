@@ -20,18 +20,62 @@ export default function UpdatesPage() {
       </div>
 
       <div className="relative mt-12 border-l border-lineStrong pl-8 sm:pl-10">
-        {/* v0.1 */}
+        {/* v0.2 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
             01
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold">v0.1</h2>
+            <h2 className="font-display text-2xl font-semibold">v0.2</h2>
+            <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
+              Current release
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-faint">August 2025</p>
+
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            ChessSim becomes a true AI-native simulation and storytelling
+            platform: a real chess engine now runs in every visitor's browser,
+            and every match is narrated like a chess novel.
+          </p>
+
+          <ul className="mt-5 grid gap-x-10 gap-y-2.5 sm:grid-cols-2">
+            {[
+              "AI Narrative Engine",
+              "Stockfish Integration",
+              "AI Match Demo",
+              "Story Mode",
+              "Real Stockfish engine (WASM, in-browser)",
+              "Engine evaluation, best moves & mistake detection",
+              "Brilliant / blunder classification by Stockfish",
+              "Full-game engine analysis with progress & caching",
+              "AI Match Demo: /match/deepseek-vs-gpt (#001)",
+              "AI Player Profiles (style, strength, strategy)",
+              "Bilingual narrative (EN / 中文) on match pages",
+              "Critical-move highlighting on the board",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
+                <span aria-hidden className="mt-0.5 text-bronze">
+                  ✓
+                </span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        {/* v0.1 */}
+        <article className="relative pb-14">
+          <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
+            02
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold text-muted">v0.1</h2>
             <span className="rounded-full bg-[#ECEBE6] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
               Initial prototype
             </span>
           </div>
-          <p className="mt-2 text-sm text-faint">Current release · June 2025</p>
+          <p className="mt-2 text-sm text-faint">June 2025</p>
 
           <p className="mt-4 text-sm leading-relaxed text-muted">
             The first complete prototype of the ChessSim experience: watch AI
@@ -49,8 +93,8 @@ export default function UpdatesPage() {
               "Three annotated simulation demos",
               "Match list, about & updates pages",
             ].map((item) => (
-              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
-                <span aria-hidden className="mt-0.5 text-bronze">
+              <li key={item} className="flex items-start gap-2.5 text-sm text-muted">
+                <span aria-hidden className="mt-0.5 text-faint">
                   ✓
                 </span>
                 {item}
@@ -62,20 +106,18 @@ export default function UpdatesPage() {
         {/* Next */}
         <article className="relative pb-4">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            02
+            03
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold text-muted">
-              v0.2
-            </h2>
+            <h2 className="font-display text-2xl font-semibold text-muted">v0.3</h2>
             <span className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
               Planned
             </span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             Real model-vs-model simulation — plugging in actual LLM APIs for
-            move selection, plus engine-generated commentary. Details will be
-            recorded here when they ship.
+            move selection, plus LLM-generated narrative on top of the engine's
+            ground truth. Details will be recorded here when they ship.
           </p>
         </article>
       </div>

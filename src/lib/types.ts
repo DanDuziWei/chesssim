@@ -31,6 +31,8 @@ export interface Alternative {
   note?: string;
 }
 
+export type Language = "en" | "zh";
+
 export interface Move {
   /** 1-based ply index. */
   ply: number;
@@ -50,9 +52,13 @@ export interface Move {
   classification: Classification;
   /** Narrative tags, e.g. ["turning-point", "sacrifice"]. */
   tags: string[];
+  /** AI story narrative for this move. */
   commentary: string;
   reasoning?: string;
   alternative?: Alternative;
+  /** Chinese narrative (generated when absent). */
+  zhCommentary: string;
+  zhReasoning?: string;
 }
 
 export interface Agent {
@@ -65,19 +71,28 @@ export interface Agent {
   initials: string;
   /** Tailwind-ish accent hue used for the avatar ring. */
   accent: string;
+  /** AI player profile — playing style. */
+  style: string;
+  /** AI player profile — core strength. */
+  strength: string;
+  /** AI player profile — strategic signature. */
+  strategy: string;
+}
+
+export interface NarrativeChapter {
+  id: string;
+  title: string;
+  zhTitle: string;
+  text: string;
+  zhText: string;
+  /** Ply this chapter points at (optional, e.g. Opening). */
+  ply?: number;
 }
 
 export interface Narrative {
-  opening: string;
-  firstTension: string;
-  firstTensionPly: number;
-  turningPoint: string;
-  turningPointPly: number;
-  criticalMistake?: string;
-  criticalMistakePly?: number;
-  finalSequence: string;
-  finalSequencePly: number;
+  chapters: NarrativeChapter[];
   summary: string;
+  summaryZh: string;
 }
 
 export interface Match {
@@ -85,6 +100,8 @@ export interface Match {
   slug: string;
   title: string;
   theme: string;
+  /** e.g. "Simulation Match #001" */
+  simulationNumber: string;
   status: MatchStatus;
   result: MatchResult;
   /** Human readable result, e.g. "1-0" or "White wins". */
@@ -94,6 +111,7 @@ export interface Match {
   opening: string;
   pgn: string;
   summary: string;
+  summaryZh: string;
   createdAt: string;
   /** A short "why this match matters" blurb. */
   premise: string;
@@ -111,6 +129,7 @@ export interface MatchSummary {
   slug: string;
   title: string;
   theme: string;
+  simulationNumber: string;
   status: MatchStatus;
   result: MatchResult;
   resultLabel: string;

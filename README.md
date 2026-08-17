@@ -18,18 +18,26 @@ explained, evaluated and narrated.
 
 ## Current Stage
 
-**v0.1 — Prototype.** The first version is deliberately small and fully local:
+**v0.2 — AI-native simulation & storytelling.** Three Simulation Demo matches,
+a real chess engine in the browser, and a narrative engine:
 
-- Three annotated **Simulation Demo** matches (legal example games)
-- Interactive match replay: board, evaluation bar, evaluation sparkline,
-  move timeline
-- Move-by-move **AI commentary**, engine evaluation, "why this matters"
-  reasoning and Stockfish-style alternatives
-- **Story Mode**: every match is told as a story — opening, first tension,
-  turning point, critical mistake, final sequence, summary
+- Three annotated **Simulation Demo** matches (legal example games),
+  `/match/deepseek-vs-gpt` (#001), `/match/claude-vs-qwen` (#002),
+  `/match/deepseek-vs-claude` (#003)
+- **Real Stockfish** (WASM, runs in a Web Worker): live evaluation, best move,
+  mistake / brilliant-move detection, full-game analysis with progress and
+  localStorage caching. Stockfish = truth; narrative = explanation.
+- Interactive replay: board, evaluation bar, evaluation sparkline, move
+  timeline, critical-move highlighting
+- **AI Narrative Engine**: every move has a story, a "why this move matters"
+  strategic note and live engine analysis — bilingual (EN / 中文)
+- **Story Mode**: each match told as a six-chapter chess novel — Opening, The
+  Battle Begins, Critical Moment, Turning Point, Final Attack, Conclusion
+- **AI Player Profiles**: playing style, strength and strategy for every agent
 - Homepage, match list, match pages, about and updates
 
-No database. No accounts. No backend. All data lives in TypeScript files.
+No database. No accounts. No backend. All data lives in TypeScript files; the
+LLM layer is not connected yet (commentary is authored content).
 
 ## Product Loop
 
@@ -42,9 +50,9 @@ Simulate → Explain → Render → Share
 2. **Explain** — every move is annotated: what changed, why the model chose it,
    the engine evaluation, better candidates, key mistakes.
 3. **Render** — the same data becomes an interactive replay: board, eval bar,
-   timeline, commentary, story mode. (Later: GIF / short video / Bilibili /
+   timeline, narrative panel, story mode. (Later: GIF / short video / Bilibili /
    YouTube.)
-4. **Share** — every match has a permanent page, e.g. `/match/deepseek-vs-gpt-001`.
+4. **Share** — every match has a permanent page, e.g. `/match/deepseek-vs-gpt`.
 
 ## Long-term Direction
 
@@ -73,9 +81,10 @@ Open [http://localhost:3000](http://localhost:3000).
 Other commands:
 
 ```bash
-npm run build          # production build
-npm run start          # serve the production build
-npm run validate:pgn   # verify all demo PGNs are legal & annotations align
+npm run build           # production build
+npm run start           # serve the production build
+npm run validate:pgn    # verify all demo PGNs are legal & annotations align
+npm run test:stockfish  # Node smoke test of the vendored Stockfish engine
 ```
 
 ## Project Structure
@@ -91,41 +100,56 @@ src/
 │   ├── layout.tsx          # root layout (nav + footer)
 │   └── globals.css         # Tailwind + design tokens
 ├── components/             # UI components
-│   ├── BoardReplay.tsx     # interactive replay (board + controls + panels)
+│   ├── BoardReplay.tsx     # replay orchestrator (board, engine, panels, lang)
 │   ├── BoardThumbnail.tsx  # static mini board
-│   ├── EvaluationBar.tsx   # lichess-style vertical eval bar
+│   ├── EvaluationBar.tsx   # vertical eval bar with White/Black labels
 │   ├── EvalSparkline.tsx   # evaluation curve across the whole game
-│   ├── MoveInfo.tsx        # commentary / evaluation / alternative panel
-│   ├── MoveTimeline.tsx    # clickable move list with classification badges
-│   ├── StoryMode.tsx       # the match told as a story
+│   ├── MoveInfo.tsx        # AI Narrative panel (story / why / engine analysis)
+│   ├── MoveTimeline.tsx    # move list with engine classifications
+│   ├── StoryMode.tsx       # six-chapter story mode (bilingual)
 │   ├── MatchCard.tsx       # featured + compact match cards
 │   ├── Navbar.tsx / Footer.tsx / AgentAvatar.tsx / Badge.tsx
-├── data/                   # the "database" for v0.1 (local TypeScript)
-│   ├── agents.ts           # player/agent registry
+├── hooks/
+│   └── useStockfish.ts     # lazy WASM Stockfish worker hook
+├── data/                   # the "database" for v0.2 (local TypeScript)
+│   ├── agents.ts           # player/agent registry + AI profiles
 │   ├── matches/*.ts        # one seed per match (PGN + annotations + narrative)
 │   └── index.ts            # builds Match objects, lookup helpers
-└── lib/
-    ├── types.ts            # Match / Move / Agent / Evaluation data model
-    ├── build.ts            # PGN expansion + annotation merge + eval curve
-    ├── classify.ts         # move classifications (brilliant, blunder, …)
-    ├── eval.ts             # evaluation formatting & win-probability math
-    └── chess-ui.ts         # board helpers (king square, swing descriptions)
+├── lib/
+│   ├── types.ts            # Match / Move / Agent / Evaluation data model
+│   ├── build.ts            # PGN expansion + annotation merge + eval curve
+│   ├── stockfish.ts        # UCI protocol client (worker-agnostic, testable)
+│   ├── engine-cache.ts     # localStorage cache for engine results
+│   ├── classify.ts         # move classifications (brilliant, blunder, …)
+│   ├── eval.ts             # evaluation formatting & win-probability math
+│   └── chess-ui.ts         # board helpers (king square, swing descriptions)
+└── public/engine/          # vendored Stockfish (WASM + asm.js fallback)
+
+scripts/
+├── validate-pgn.ts         # PGN legality + annotation alignment check
+└── test-stockfish.mjs      # engine smoke test (Node, vm-based worker shim)
 ```
 
 ## Data Model
 
-- **Match** — id, slug, title, theme, white/black players, status, result,
-  PGN, summary, narrative (story mode), positions (FEN per ply), moves.
+- **Match** — id, slug, title, theme, simulation number, white/black players,
+  status, result, PGN, summary (EN/ZH), narrative (six chapters), positions
+  (FEN per ply), moves.
 - **Move** — ply, moveNumber, SAN, from/to, resulting FEN, evaluation (cp or
-  mate), classification (book → brilliant), commentary, reasoning, alternative,
-  narrative tags (turning-point, sacrifice, …).
-- **Agent** — id, name, model, provider, description, avatar accent.
+  mate), classification (book → brilliant), commentary (EN/ZH), reasoning,
+  alternative, narrative tags (turning-point, sacrifice, …).
+- **Agent** — id, name, model, provider, description, avatar accent, plus an
+  AI player profile: playing style, strength, strategy.
 
 Matches are authored as *seeds*: a legal PGN plus sparse checkpoints
 (evaluation curve) and move annotations keyed by `"<moveNumber><color>"`
 (e.g. `"17b"`). `src/lib/build.ts` expands the PGN with chess.js, validates
 legality, interpolates the evaluation curve and merges annotations — throwing
 a descriptive error if any move is illegal.
+
+At runtime, the browser loads Stockfish (WASM) in a Web Worker via
+`src/lib/stockfish.ts`. The engine provides ground truth (evaluation, best
+move, mistake/brilliant classification); the authored narrative explains it.
 
 ## Design Principles
 

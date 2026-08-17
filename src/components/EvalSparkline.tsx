@@ -1,22 +1,25 @@
-import type { Move } from "@/lib/types";
+import type { Evaluation, Move } from "@/lib/types";
 import { clamp, evalToWinProb } from "@/lib/eval";
 
 interface EvalSparklineProps {
   moves: Move[];
   currentPly: number; // 0..moves.length
   onSelect?: (ply: number) => void;
+  /** Real engine evaluations (may be partial); index i = after ply i+1. */
+  realEvals?: (Evaluation | undefined)[];
 }
 
 /**
  * A small SVG sparkline of White's win probability across the whole game,
- * with a marker for the current ply. Click to jump.
+ * with a marker for the current ply. Click to jump. Prefers real engine
+ * evaluations when available and falls back to the curated curve.
  */
-export function EvalSparkline({ moves, currentPly, onSelect }: EvalSparklineProps) {
+export function EvalSparkline({ moves, currentPly, onSelect, realEvals }: EvalSparklineProps) {
   const W = 480;
   const H = 56;
   const PAD = 4;
 
-  const evals = moves.map((m) => m.evaluation);
+  const evals = moves.map((m, i) => realEvals?.[i] ?? m.evaluation);
   const points: [number, number][] = evals.map((e, i) => {
     const x = PAD + (i / Math.max(1, evals.length - 1)) * (W - PAD * 2);
     const y = PAD + (1 - clamp(evalToWinProb(e), 0, 1)) * (H - PAD * 2);
@@ -52,7 +55,7 @@ export function EvalSparkline({ moves, currentPly, onSelect }: EvalSparklineProp
           <button
             key={i}
             aria-label={`Jump to move ${i + 1}`}
-            className="absolute top-0 h-full"
+            className="absolute top-0 h-full cursor-pointer"
             style={{ left: `${(x / W) * 100}%`, width: `${W / Math.max(1, points.length) / W * 100}%` }}
             onClick={() => onSelect(i + 1)}
           />

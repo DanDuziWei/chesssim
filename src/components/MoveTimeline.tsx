@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Move } from "@/lib/types";
+import type { Classification, Evaluation, Language, Move } from "@/lib/types";
 import { CLASSIFICATION_META } from "@/lib/classify";
 import { TAG_COLORS } from "./Badge";
 import { EvalSparkline } from "./EvalSparkline";
@@ -10,34 +10,41 @@ interface MoveTimelineProps {
   moves: Move[];
   ply: number;
   onSelect: (ply: number) => void;
+  lang: Language;
+  /** Real-engine classification overrides; index i = after ply i+1. */
+  engineClassifications?: (Classification | undefined)[];
+  /** Real engine evals for the sparkline (partial). */
+  realEvals?: (Evaluation | undefined)[];
+  /** Full-game analysis progress, when a sweep is running. */
+  analysisProgress?: { done: number; total: number } | null;
 }
 
 function MoveCell({
   move,
   isActive,
   onSelect,
+  classificationOverride,
 }: {
   move?: Move;
   isActive: boolean;
   onSelect: (ply: number) => void;
+  classificationOverride?: Classification;
 }) {
   if (!move) {
     return <span className="px-3 py-1.5 text-sm text-faint">…</span>;
   }
-  const meta = CLASSIFICATION_META[move.classification];
+  const classification = classificationOverride ?? move.classification;
+  const meta = CLASSIFICATION_META[classification];
   const significant =
-    move.classification !== "good" &&
-    move.classification !== "book" &&
-    move.classification !== "best";
+    classification !== "good" && classification !== "book" && classification !== "best";
   const tagColor = move.tags[0] ? TAG_COLORS[move.tags[0]] : undefined;
+  const fromEngine = classificationOverride != null;
 
   return (
     <button
       onClick={() => onSelect(move.ply)}
       className={`flex w-full items-center justify-between gap-1 rounded-md px-3 py-1.5 text-left text-sm transition-colors ${
-        isActive
-          ? "bg-ink text-paper"
-          : "text-ink hover:bg-line/50"
+        isActive ? "bg-ink text-paper" : "text-ink hover:bg-line/50"
       }`}
     >
       <span className="flex items-center gap-1.5">
@@ -48,25 +55,41 @@ function MoveCell({
           {move.san}
         </span>
         {meta.glyph && (
-          <span
-            className="text-xs"
-            style={{ color: isActive ? "#F6F4EF" : meta.fg }}
-          >
+          <span className="text-xs" style={{ color: isActive ? "#F6F4EF" : meta.fg }}>
             {meta.glyph}
           </span>
         )}
       </span>
-      {tagColor && (
-        <span
-          className="h-1.5 w-1.5 shrink-0 rounded-full"
-          style={{ backgroundColor: isActive ? "#F6F4EF" : tagColor }}
-        />
-      )}
+      <span className="flex items-center gap-1">
+        {fromEngine && (
+          <span
+            className="text-[9px] font-semibold uppercase tracking-wider"
+            style={{ color: isActive ? "#D7CFBF" : "#9B9386" }}
+            title="Classified by Stockfish"
+          >
+            SF
+          </span>
+        )}
+        {tagColor && (
+          <span
+            className="h-1.5 w-1.5 shrink-0 rounded-full"
+            style={{ backgroundColor: isActive ? "#F6F4EF" : tagColor }}
+          />
+        )}
+      </span>
     </button>
   );
 }
 
-export function MoveTimeline({ moves, ply, onSelect }: MoveTimelineProps) {
+export function MoveTimeline({
+  moves,
+  ply,
+  onSelect,
+  lang,
+  engineClassifications,
+  realEvals,
+  analysisProgress,
+}: MoveTimelineProps) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,17 +107,34 @@ export function MoveTimeline({ moves, ply, onSelect }: MoveTimelineProps) {
     rows.push({ w: moves[i], b: moves[i + 1] });
   }
 
+  const t = {
+    timeline: lang === "zh" ? "时间轴" : "Timeline",
+    plies: lang === "zh" ? "着法" : "plies",
+    jump: lang === "zh" ? "点击着法跳转" : "click a move to jump",
+    start: lang === "zh" ? "开局局面" : "Start position",
+    analyzing: lang === "zh" ? "引擎分析中" : "Stockfish analyzing",
+  };
+
   return (
     <div className="card overflow-hidden">
       <div className="border-b border-line px-5 pb-3 pt-4">
-        <div className="flex items-baseline justify-between">
-          <p className="eyebrow">Timeline</p>
-          <p className="text-xs text-faint">
-            {moves.length} plies · click a move to jump
-          </p>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="eyebrow">{t.timeline}</p>
+          <div className="flex items-center gap-3 text-xs text-faint">
+            {analysisProgress ? (
+              <span className="inline-flex items-center gap-1.5 text-bronze">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-bronze" />
+                {t.analyzing} {analysisProgress.done}/{analysisProgress.total}
+              </span>
+            ) : (
+              <span>
+                {moves.length} {t.plies} · {t.jump}
+              </span>
+            )}
+          </div>
         </div>
         <div className="mt-3">
-          <EvalSparkline moves={moves} currentPly={ply} onSelect={onSelect} />
+          <EvalSparkline moves={moves} currentPly={ply} onSelect={onSelect} realEvals={realEvals} />
         </div>
       </div>
 
@@ -108,7 +148,7 @@ export function MoveTimeline({ moves, ply, onSelect }: MoveTimelineProps) {
             ply === 0 ? "bg-ink text-paper" : "text-muted hover:bg-line/50 hover:text-ink"
           }`}
         >
-          Start position
+          {t.start}
         </button>
 
         {rows.map((row, i) => (
@@ -121,11 +161,13 @@ export function MoveTimeline({ moves, ply, onSelect }: MoveTimelineProps) {
               move={row.w}
               isActive={row.w?.ply === ply}
               onSelect={onSelect}
+              classificationOverride={row.w ? engineClassifications?.[row.w.ply - 1] : undefined}
             />
             <MoveCell
               move={row.b}
               isActive={row.b?.ply === ply}
               onSelect={onSelect}
+              classificationOverride={row.b ? engineClassifications?.[row.b.ply - 1] : undefined}
             />
           </div>
         ))}

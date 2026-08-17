@@ -6,6 +6,8 @@ interface EvaluationBarProps {
   className?: string;
   /** Hide the numeric label (used inside tight layouts). */
   showLabel?: boolean;
+  /** Extra annotation, e.g. engine depth ("d14") or "checkmate". */
+  note?: string;
 }
 
 /**
@@ -16,11 +18,15 @@ export function EvaluationBar({
   evaluation,
   className = "",
   showLabel = true,
+  note,
 }: EvaluationBarProps) {
   const whitePct = Math.round(evalToWinProb(evaluation) * 100);
 
   return (
-    <div className={`flex flex-col items-center gap-2 ${className}`}>
+    <div className={`flex flex-col items-center gap-1.5 ${className}`}>
+      <span className="text-[9px] font-semibold uppercase tracking-wider text-faint">
+        White
+      </span>
       {showLabel && (
         <span
           className={`text-xs font-semibold tabular-nums ${
@@ -28,6 +34,9 @@ export function EvaluationBar({
           }`}
         >
           {formatEval(evaluation)}
+          {note && (
+            <span className="ml-1 text-[10px] font-medium text-faint">{note}</span>
+          )}
         </span>
       )}
       <div className="relative min-h-24 w-3.5 flex-1 overflow-hidden rounded-full border border-lineStrong bg-[#322C23]">
@@ -37,6 +46,9 @@ export function EvaluationBar({
         />
         <div className="absolute left-0 right-0 top-1/2 h-px bg-[#322C23]/70" />
       </div>
+      <span className="text-[9px] font-semibold uppercase tracking-wider text-faint">
+        Black
+      </span>
     </div>
   );
 }

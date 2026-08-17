@@ -20,6 +20,11 @@ export interface MoveAnnotationInput {
     note?: string;
   };
   tags?: string[];
+  /** Optional Chinese narrative; generated from a template when absent. */
+  zh?: {
+    story?: string;
+    reasoning?: string;
+  };
 }
 
 export interface EvalCheckpoint {
@@ -114,6 +119,40 @@ function defaultCommentary(
       return `${who} blunders with ${san}, and the position turns sharply (${ev}).`;
     default:
       return `${who} plays ${san}.`;
+  }
+}
+
+function defaultCommentaryZh(
+  color: Side,
+  san: string,
+  classification: Classification,
+  evalAfter: Evaluation,
+  whiteName: string,
+  blackName: string
+): string {
+  const who = color === "w" ? whiteName : blackName;
+  const sign = evalAfter.cp > 0 ? "+" : "";
+  const ev = `${sign}${(evalAfter.cp / 100).toFixed(1)}`;
+
+  switch (classification) {
+    case "book":
+      return `${who} 走出开局理论着法 ${san}，自然地向中局过渡。`;
+    case "brilliant":
+      return `${who} 下出 ${san}——一步重新定义局面的妙手，即便是强引擎也难以发现。`;
+    case "excellent":
+      return `${who} 走出精准的 ${san}，进一步收紧控制，获得持久的优势（${ev}）。`;
+    case "best":
+      return `${who} 选择 ${san}，正是引擎的首选着法，持续施压。`;
+    case "good":
+      return `${who} 稳健地走出 ${san}，局面维持在 ${ev}。`;
+    case "inaccuracy":
+      return `${who} 走出 ${san}，略显不够精确，优势有所流失（${ev}）。`;
+    case "mistake":
+      return `${who} 的 ${san} 是一步真正的失误，评估来到 ${ev}。`;
+    case "blunder":
+      return `${who} 走出败着 ${san}，局面急转直下（${ev}）。`;
+    default:
+      return `${who} 走出 ${san}。`;
   }
 }
 
@@ -240,6 +279,17 @@ export function expandPgn(
         opts.blackName
       );
 
+    const zhCommentary =
+      ann?.zh?.story ??
+      defaultCommentaryZh(
+        color,
+        r.san,
+        classification,
+        evalAfter,
+        opts.whiteName,
+        opts.blackName
+      );
+
     const alternative = alternatives[idx];
 
     return {
@@ -260,6 +310,8 @@ export function expandPgn(
       commentary,
       reasoning: ann?.reasoning,
       alternative,
+      zhCommentary,
+      zhReasoning: ann?.zh?.reasoning,
     };
   });
 

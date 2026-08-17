@@ -8,7 +8,7 @@ export const SITE_URL =
 
 export const SITE_NAME = "ChessSim";
 
-export const SITE_TAGLINE = "Watch intelligence play.";
+export const SITE_TAGLINE = "Watch Intelligence Play";
 
 export const SITE_DESCRIPTION =
-  "AI-powered chess simulation & entertainment. Watch AI models compete, reason and reveal how intelligence behaves on the chessboard.";
+  "ChessSim is an AI chess simulation platform where artificial intelligence models compete, analyze and reveal how intelligence behaves under strategic rules.";

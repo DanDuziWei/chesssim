@@ -1,68 +1,34 @@
 "use client";
 
-import type { Narrative } from "@/lib/types";
+import type { Language, Narrative } from "@/lib/types";
 
 interface StoryModeProps {
   narrative: Narrative;
   currentPly: number;
   onJump: (ply: number) => void;
-  moveCount: number;
+  lang: Language;
 }
 
-interface Chapter {
-  id: string;
-  title: string;
-  text: string;
-  ply?: number;
-}
-
-export function StoryMode({ narrative, currentPly, onJump, moveCount }: StoryModeProps) {
-  const chapters: Chapter[] = [
-    { id: "opening", title: "Opening", text: narrative.opening },
-    {
-      id: "tension",
-      title: "First Tension",
-      text: narrative.firstTension,
-      ply: narrative.firstTensionPly,
-    },
-    {
-      id: "turning",
-      title: "Turning Point",
-      text: narrative.turningPoint,
-      ply: narrative.turningPointPly,
-    },
-    ...(narrative.criticalMistake
-      ? [
-          {
-            id: "mistake",
-            title: "Critical Mistake",
-            text: narrative.criticalMistake,
-            ply: narrative.criticalMistakePly,
-          },
-        ]
-      : []),
-    {
-      id: "finale",
-      title: "Final Sequence",
-      text: narrative.finalSequence,
-      ply: narrative.finalSequencePly,
-    },
-  ];
+export function StoryMode({ narrative, currentPly, onJump, lang }: StoryModeProps) {
+  const zh = lang === "zh";
+  const chapters = narrative.chapters;
+  const summary = zh ? narrative.summaryZh : narrative.summary;
 
   const activeId = [...chapters]
     .reverse()
     .find((c) => c.ply != null && currentPly >= c.ply)?.id;
 
   return (
-    <section aria-label="Story mode">
+    <section aria-label={zh ? "故事模式" : "Story mode"}>
       <div className="mb-8">
-        <p className="eyebrow">Story Mode</p>
+        <p className="eyebrow">{zh ? "故事模式" : "Story Mode"}</p>
         <h2 className="mt-2 max-w-xl text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-          The match, told as a story
+          {zh ? "把这盘棋，讲成一个故事" : "The match, told as a story"}
         </h2>
         <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
-          Chess engines see numbers. A match has a shape — an opening idea, a
-          moment of tension, a turn, a collapse. Here is the arc of this game.
+          {zh
+            ? "引擎看到的是数字；一盘棋却有它的形状——一个开局构想、一次紧张的对峙、一个转折、一场崩塌。这是本局的叙事弧线。"
+            : "Chess engines see numbers. A match has a shape — an opening idea, a moment of tension, a turn, a collapse. Here is the arc of this game."}
         </p>
       </div>
 
@@ -70,6 +36,8 @@ export function StoryMode({ narrative, currentPly, onJump, moveCount }: StoryMod
         {chapters.map((chapter, i) => {
           const active = chapter.id === activeId;
           const jumpPly = chapter.ply;
+          const title = zh ? chapter.zhTitle : chapter.title;
+          const text = zh ? chapter.zhText : chapter.text;
           return (
             <div key={chapter.id} className="relative pb-10 last:pb-0">
               <span
@@ -88,23 +56,24 @@ export function StoryMode({ narrative, currentPly, onJump, moveCount }: StoryMod
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="font-display text-xl font-semibold">
-                    {chapter.title}
-                  </h3>
+                  <h3 className="font-display text-xl font-semibold">{title}</h3>
                   {jumpPly != null && (
                     <button
                       onClick={() => onJump(jumpPly)}
                       className="group inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 text-xs font-semibold text-muted transition-colors hover:border-bronze hover:text-bronze"
                     >
-                      Go to move {jumpPly}
-                      <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                      {zh ? `跳到第 ${jumpPly} 步` : `Go to move ${jumpPly}`}
+                      <span
+                        aria-hidden
+                        className="transition-transform group-hover:translate-x-0.5"
+                      >
                         →
                       </span>
                     </button>
                   )}
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-muted sm:text-[15px]">
-                  {chapter.text}
+                  {text}
                 </p>
               </div>
             </div>
@@ -113,9 +82,9 @@ export function StoryMode({ narrative, currentPly, onJump, moveCount }: StoryMod
       </div>
 
       <div className="card mt-10 border-l-2 border-l-bronze bg-surface p-6 sm:p-8">
-        <p className="eyebrow">Match Summary</p>
+        <p className="eyebrow">{zh ? "对局总结" : "Match Summary"}</p>
         <blockquote className="mt-3 font-display text-xl leading-relaxed text-ink sm:text-2xl">
-          “{narrative.summary}”
+          “{summary}”
         </blockquote>
       </div>
     </section>

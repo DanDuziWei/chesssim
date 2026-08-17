@@ -58,7 +58,7 @@ git push -u origin main
 
    - `/` 首页
    - `/matches` 比赛列表
-   - `/match/deepseek-vs-gpt-001` 回放页
+   - `/match/deepseek-vs-gpt` 回放页
    - `/about`、`/updates`
 
 之后每次 `git push` 到 `main` 分支，Vercel 都会**自动重新构建部署**，无需手动操作。

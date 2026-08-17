@@ -9,7 +9,7 @@ export function Footer() {
             <p className="text-base font-semibold tracking-tight">
               Chess<span className="text-bronze">Sim</span>{" "}
               <span className="ml-1 text-xs font-medium uppercase tracking-widest text-muted">
-                v0.1
+                v0.2
               </span>
             </p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
@@ -48,7 +48,7 @@ export function Footer() {
               <ul className="mt-3 space-y-2 text-sm">
                 <li>
                   <Link
-                    href="/match/deepseek-vs-gpt-001"
+                    href="/match/deepseek-vs-gpt"
                     className="text-muted hover:text-ink"
                   >
                     DeepSeek vs GPT
@@ -56,7 +56,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/match/claude-vs-qwen-001"
+                    href="/match/claude-vs-qwen"
                     className="text-muted hover:text-ink"
                   >
                     Claude vs Qwen
@@ -64,7 +64,7 @@ export function Footer() {
                 </li>
                 <li>
                   <Link
-                    href="/match/deepseek-vs-claude-001"
+                    href="/match/deepseek-vs-claude"
                     className="text-muted hover:text-ink"
                   >
                     DeepSeek vs Claude
@@ -77,7 +77,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-3 border-t border-line pt-6 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} ChessSim. All matches are simulation demos.</p>
-          <p className="font-medium uppercase tracking-widest">ChessSim v0.1</p>
+          <p className="font-medium uppercase tracking-widest">ChessSim v0.2</p>
         </div>
       </div>
     </footer>

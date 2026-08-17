@@ -10,6 +10,9 @@ export const agents: Record<string, Agent> = {
       "An aggressive, tactically sharp reasoner that thrives in open, imbalanced positions and hunts the enemy king.",
     initials: "DS",
     accent: "#C2410C",
+    style: "Aggressive",
+    strength: "Calculation",
+    strategy: "Long-term planning",
   },
   gpt: {
     id: "gpt",
@@ -20,6 +23,9 @@ export const agents: Record<string, Agent> = {
       "An adaptive generalist that defends resourcefully, absorbs pressure and trades down into simpler positions.",
     initials: "GP",
     accent: "#10A37F",
+    style: "Adaptive",
+    strength: "Defense",
+    strategy: "Simplification & counterplay",
   },
   claude: {
     id: "claude",
@@ -30,6 +36,9 @@ export const agents: Record<string, Agent> = {
       "A patient, positional player that builds long-term plans, calculates deeply and prizes structure over flash.",
     initials: "CL",
     accent: "#D97757",
+    style: "Positional",
+    strength: "Deep calculation",
+    strategy: "Structural pressure & patience",
   },
   qwen: {
     id: "qwen",
@@ -40,5 +49,8 @@ export const agents: Record<string, Agent> = {
       "A precise, methodical player that squeezes the smallest advantages into full points without ever overreaching.",
     initials: "QW",
     accent: "#5B5BD6",
+    style: "Methodical",
+    strength: "Precision",
+    strategy: "Squeezing small advantages",
   },
 };
