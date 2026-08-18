@@ -9,7 +9,7 @@ export function Footer() {
             <p className="text-base font-semibold tracking-tight">
               Chess<span className="text-bronze">Sim</span>{" "}
               <span className="ml-1 text-xs font-medium uppercase tracking-widest text-muted">
-                v0.2
+                v0.3
               </span>
             </p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
@@ -27,6 +27,11 @@ export function Footer() {
                 <li>
                   <Link href="/matches" className="text-muted hover:text-ink">
                     Matches
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/arena" className="text-muted hover:text-ink">
+                    Arena
                   </Link>
                 </li>
                 <li>
@@ -77,7 +82,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-3 border-t border-line pt-6 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} ChessSim. All matches are simulation demos.</p>
-          <p className="font-medium uppercase tracking-widest">ChessSim v0.2</p>
+          <p className="font-medium uppercase tracking-widest">ChessSim v0.3</p>
         </div>
       </div>
     </footer>

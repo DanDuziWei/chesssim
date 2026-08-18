@@ -88,7 +88,7 @@ function buildEvaluations(
   return evals;
 }
 
-function defaultCommentary(
+export function defaultCommentary(
   color: Side,
   san: string,
   classification: Classification,
@@ -122,7 +122,7 @@ function defaultCommentary(
   }
 }
 
-function defaultCommentaryZh(
+export function defaultCommentaryZh(
   color: Side,
   san: string,
   classification: Classification,

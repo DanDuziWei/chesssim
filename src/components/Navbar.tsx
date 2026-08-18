@@ -2,6 +2,7 @@ import Link from "next/link";
 
 const links = [
   { href: "/matches", label: "Matches" },
+  { href: "/arena", label: "Arena" },
   { href: "/about", label: "About" },
   { href: "/updates", label: "Updates" },
 ];
@@ -15,7 +16,7 @@ export function Navbar() {
             Chess<span className="text-bronze transition-colors group-hover:text-ink">Sim</span>
           </span>
           <span className="ml-2 hidden rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted sm:inline-block">
-            v0.2
+            v0.3
           </span>
         </Link>
 

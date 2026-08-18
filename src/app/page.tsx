@@ -61,10 +61,10 @@ export default function HomePage() {
               Watch a Match
             </Link>
             <Link
-              href="/matches"
+              href="/arena"
               className="rounded-full border border-lineStrong bg-surface px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:border-bronze hover:text-bronze"
             >
-              Browse Matches
+              Live Arena — start a simulation
             </Link>
           </div>
 
@@ -149,15 +149,21 @@ export default function HomePage() {
           The board is the same. The minds are not.
         </h2>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted sm:text-base">
-          Three simulation demos are live. Watch how different models attack,
-          defend and reason — move by move.
+          Watch curated matches — or open the Arena and pit two intelligences
+          against each other live, move by move.
         </p>
-        <div className="mt-7 flex justify-center">
+        <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link
             href="/matches"
             className="rounded-full bg-ink px-6 py-2.5 text-sm font-medium text-paper transition-colors hover:bg-bronze"
           >
             Watch the Matches
+          </Link>
+          <Link
+            href="/arena"
+            className="rounded-full border border-lineStrong bg-surface px-6 py-2.5 text-sm font-medium text-ink transition-colors hover:border-bronze hover:text-bronze"
+          >
+            Open the Arena
           </Link>
         </div>
       </section>

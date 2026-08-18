@@ -57,11 +57,32 @@ git push -u origin main
 6. 部署成功后你会得到一个地址：`https://chesssim-xxxx.vercel.app`，点击打开验证：
 
    - `/` 首页
-   - `/matches` 比赛列表
    - `/match/deepseek-vs-gpt` 回放页
+   - `/arena` AI 对战竞技场（无需任何 key 即可运行：Stockfish 引擎对战）
    - `/about`、`/updates`
 
 之后每次 `git push` 到 `main` 分支，Vercel 都会**自动重新构建部署**，无需手动操作。
+
+## 第 2.5 步（可选）：配置 LLM API Key，解锁真实模型对战
+
+Arena 默认即可用（Stockfish 引擎 + 本地机器人）。要让 DeepSeek / GPT /
+Claude / Qwen / Gemini 真正上场走子，在 Vercel 配置对应环境变量：
+
+> Vercel → 项目 → **Settings → Environment Variables** → 添加后重新部署
+
+| 变量 | 用途 | 获取地址 |
+|---|---|---|
+| `DEEPSEEK_API_KEY` | DeepSeek 走子 + 解说 | platform.deepseek.com |
+| `OPENAI_API_KEY` | GPT 走子 + 解说 | platform.openai.com |
+| `ANTHROPIC_API_KEY` | Claude 走子 + 解说 | console.anthropic.com |
+| `GEMINI_API_KEY` | Gemini 走子 + 解说 | aistudio.google.com |
+| `DASHSCOPE_API_KEY` | Qwen 走子 + 解说 | bailian.console.aliyun.com |
+
+未配置 key 的模型会在 Arena 里明确标注 **"needs API key"**，开赛后以本地
+启发式（离线模式）代替，页面会显示 ⚠️ 提示——不会假装是真实 LLM 在走子。
+
+> 本地开发时把 key 写进项目根目录的 `.env.local` 即可（已在 .gitignore 中，
+> 不会上传）。
 
 ---
 
@@ -144,8 +165,8 @@ Vercel 收到 push 后自动构建上线。每个 Pull Request 还会自动生�
 
 ## 技术备注
 
-- Next.js 15（App Router，全部页面静态生成 / SSG），Node 18.18+；
+- Next.js 15（App Router，页面静态生成 / SSG；API 路由 Node.js runtime），Node 18.18+；
 - Vercel 默认 Node 版本即可，无需额外设置；
-- 项目无 `.env` 依赖，不需要配置任何环境变量或密钥；
-- 未来接入真实 AI 对弈 API 时，把 API Key 配置在
-  Vercel → Settings → Environment Variables 即可，代码侧已有模块化结构预留。
+- **零配置可用**：不配置任何 key 时，Arena 用浏览器内 Stockfish + 本地机器人对战；
+- 配置 LLM API Key（第 2.5 步）后，DeepSeek / GPT / Claude / Qwen / Gemini 即可真实上场；
+- 引擎（Stockfish WASM）运行在访问者浏览器里，不占用 Vercel 资源。
