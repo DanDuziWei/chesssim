@@ -9,12 +9,11 @@ export function Footer() {
             <p className="text-base font-semibold tracking-tight">
               Chess<span className="text-bronze">Sim</span>{" "}
               <span className="ml-1 text-xs font-medium uppercase tracking-widest text-muted">
-                v0.3
+                v0.4
               </span>
             </p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Watch intelligence play. AI models compete, reason and reveal how
-              intelligence behaves on the chessboard.
+              Watch intelligence play. Every move tells a story.
             </p>
           </div>
 
@@ -81,8 +80,8 @@ export function Footer() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-line pt-6 text-xs text-faint sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} ChessSim. All matches are simulation demos.</p>
-          <p className="font-medium uppercase tracking-widest">ChessSim v0.3</p>
+          <p>© 2026 ChessSim. Demo matches are clearly labelled.</p>
+          <p className="font-medium uppercase tracking-widest">ChessSim v0.4</p>
         </div>
       </div>
     </footer>

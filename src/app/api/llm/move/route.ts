@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     legalMoves: legalMoves,
     colorLabel,
   });
-  const user = buildMoveUserPrompt({
+  let user = buildMoveUserPrompt({
     agentName: agent.name,
     opponentName: body.opponentName ?? "the opponent",
     fen: body.fen,
@@ -99,7 +99,7 @@ export async function POST(req: Request) {
       } else {
         lastError = "no move found in response";
       }
-      user + `\n\nYour previous answer was invalid (${lastError}). Reply again with MOVE: and COMMENT: lines using only legal moves.`;
+      user += `\n\nYour previous answer was invalid (${lastError}). Reply again with MOVE: and COMMENT: lines using only legal moves.`;
     } catch (err) {
       lastError = err instanceof Error ? err.message : String(err);
       break; // network/provider error — do not retry

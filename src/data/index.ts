@@ -1,4 +1,5 @@
 import { expandPgn, resultLabel } from "@/lib/build";
+import { buildMatchStory } from "@/lib/narrative";
 import type { Match, MatchSummary } from "@/lib/types";
 import { agents } from "./agents";
 import { claudeVsQwen } from "./matches/claude-vs-qwen";
@@ -22,6 +23,28 @@ function buildMatch(seed: MatchSeed): Match {
     blackName: black.name,
   });
 
+  const chapters = seed.narrative.chapters.map((c) => ({
+    id: c.id,
+    title: c.title,
+    zhTitle: c.zhTitle,
+    text: c.text,
+    zhText: c.zhText,
+    ply: c.ply,
+  }));
+
+  const story = buildMatchStory({
+    title: seed.narrative.title,
+    zhTitle: seed.narrative.zhTitle,
+    subtitle: seed.summary,
+    zhSubtitle: seed.summaryZh,
+    opening: seed.premise,
+    chapters,
+    moves: expanded.moves,
+    positions: expanded.positions,
+    summary: seed.narrative.summary,
+    summaryZh: seed.narrative.summaryZh,
+  });
+
   return {
     id: seed.slug,
     slug: seed.slug,
@@ -39,21 +62,17 @@ function buildMatch(seed: MatchSeed): Match {
     summaryZh: seed.summaryZh,
     createdAt: seed.createdAt,
     premise: seed.premise,
+    generation:
+      seed.generation ?? {
+        provenance: "demo",
+        label: "Demo Story",
+        description:
+          "A legal example PGN with editorial narrative. The named models did not play this game.",
+      },
     moves: expanded.moves,
     positions: expanded.positions,
     finalEvaluation: expanded.finalEvaluation,
-    narrative: {
-      chapters: seed.narrative.chapters.map((c) => ({
-        id: c.id,
-        title: c.title,
-        zhTitle: c.zhTitle,
-        text: c.text,
-        zhText: c.zhText,
-        ply: c.ply,
-      })),
-      summary: seed.narrative.summary,
-      summaryZh: seed.narrative.summaryZh,
-    },
+    story,
     moveCount: expanded.moveCount,
   };
 }
@@ -96,5 +115,8 @@ export function toMatchSummary(m: Match): MatchSummary {
     createdAt: m.createdAt,
     moveCount: m.moveCount,
     finalEvaluation: m.finalEvaluation,
+    generation: m.generation,
+    storyTitle: m.story.title,
+    storySubtitle: m.story.subtitle,
   };
 }

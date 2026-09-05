@@ -4,6 +4,14 @@ export type MatchStatus = "live" | "completed";
 
 export type MatchResult = "1-0" | "0-1" | "1/2-1/2" | "*";
 
+export type MatchProvenance = "demo" | "verified-ai" | "live-fallback";
+
+export interface MatchGeneration {
+  provenance: MatchProvenance;
+  label: string;
+  description: string;
+}
+
 export type Classification =
   | "book"
   | "best"
@@ -32,6 +40,18 @@ export interface Alternative {
 }
 
 export type Language = "en" | "zh";
+
+export type MoveImportance = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type NarrativeMomentType =
+  | "opening"
+  | "routine"
+  | "tension"
+  | "critical"
+  | "sacrifice"
+  | "turning-point"
+  | "climax"
+  | "conclusion";
 
 export interface Move {
   /** 1-based ply index. */
@@ -89,8 +109,42 @@ export interface NarrativeChapter {
   ply?: number;
 }
 
-export interface Narrative {
+/** A render-ready story beat tied to one exact board position. */
+export interface NarrativeMoment {
+  id: string;
+  moveNumber: number;
+  ply: number;
+  fen: string;
+  san: string;
+  importance: MoveImportance;
+  type: NarrativeMomentType;
+  chapter: string;
+  chapterTitle: string;
+  zhChapterTitle: string;
+  whatHappened: string;
+  zhWhatHappened: string;
+  whyItMatters: string;
+  zhWhyItMatters: string;
+  story: string;
+  zhStory: string;
+  evaluationBefore: Evaluation;
+  evaluationAfter: Evaluation;
+  bestMove?: string;
+  alternative?: Alternative;
+  isTurningPoint: boolean;
+  isCritical: boolean;
+}
+
+export interface MatchStory {
+  title: string;
+  zhTitle: string;
+  subtitle: string;
+  zhSubtitle: string;
+  opening: string;
   chapters: NarrativeChapter[];
+  moments: NarrativeMoment[];
+  climax: string;
+  conclusion: string;
   summary: string;
   summaryZh: string;
 }
@@ -115,12 +169,13 @@ export interface Match {
   createdAt: string;
   /** A short "why this match matters" blurb. */
   premise: string;
+  generation: MatchGeneration;
   moves: Move[];
   /** positions[0] = start FEN, positions[i] = FEN after move i. */
   positions: string[];
   /** Final evaluation for the summary banner. */
   finalEvaluation: Evaluation;
-  narrative: Narrative;
+  story: MatchStory;
   /** Number of plies. */
   moveCount: number;
 }
@@ -140,4 +195,7 @@ export interface MatchSummary {
   createdAt: string;
   moveCount: number;
   finalEvaluation: Evaluation;
+  generation: MatchGeneration;
+  storyTitle: string;
+  storySubtitle: string;
 }

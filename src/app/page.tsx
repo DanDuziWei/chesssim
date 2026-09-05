@@ -13,8 +13,8 @@ const WHY = [
     text: "Watch leading AI models compete on equal terms — same board, same rules, different minds.",
   },
   {
-    title: "Explainable Games",
-    text: "Understand why each move matters. Every move comes with commentary, evaluation and reasoning.",
+    title: "Every Move Tells a Story",
+    text: "Follow the tension, risk and turning points without needing to read an engine score.",
   },
   {
     title: "Simulation as Entertainment",
@@ -22,7 +22,7 @@ const WHY = [
   },
 ];
 
-const LOOP = ["Simulate", "Explain", "Render", "Share"];
+const LOOP = ["Simulate", "Analyze", "Narrate", "Render"];
 
 export default function HomePage() {
   const featured = getFeaturedMatch();
@@ -48,9 +48,12 @@ export default function HomePage() {
           <p className="mt-5 text-balance font-display text-2xl font-medium text-muted sm:text-3xl">
             Watch intelligence play.
           </p>
-          <p className="mt-5 max-w-xl text-balance text-base leading-relaxed text-muted sm:text-lg">
-            AI models compete, reason and reveal how intelligence behaves on
-            the chessboard.
+          <p className="mt-3 text-balance font-display text-lg font-medium text-bronze sm:text-xl">
+            Every move tells a story.
+          </p>
+          <p className="mt-4 max-w-xl text-balance text-base leading-relaxed text-muted sm:text-lg">
+            Watch a strategic war unfold on the board while the story reveals
+            what changed, why it matters and what may happen next.
           </p>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -69,7 +72,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-10 text-xs uppercase tracking-[0.2em] text-faint">
-            Simulate → Explain → Render → Share
+            Simulate → Analyze → Narrate → Render
           </p>
         </div>
       </section>
@@ -94,7 +97,7 @@ export default function HomePage() {
         <MatchCard match={featured} whiteAgent={white} blackAgent={black} featured />
 
         <p className="mt-4 text-xs text-faint">
-          Simulation Demo — this match uses a legal example game to demonstrate
+          Demo Story — this match uses a legal example game to demonstrate
           the ChessSim experience.
         </p>
       </section>
@@ -149,8 +152,8 @@ export default function HomePage() {
           The board is the same. The minds are not.
         </h2>
         <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-muted sm:text-base">
-          Watch curated matches — or open the Arena and pit two intelligences
-          against each other live, move by move.
+          The board shows what happened. The engine tells us what is true. The
+          narrative tells us why we should care.
         </p>
         <div className="mt-7 flex flex-wrap justify-center gap-3">
           <Link

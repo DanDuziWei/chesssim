@@ -18,8 +18,9 @@ explained, evaluated and narrated.
 
 ## Current Stage
 
-**v0.3 — AI Chess Arena.** The simulation loop is now real: live, move-by-move
-AI-vs-AI games run in the browser, with a real chess engine as ground truth.
+**v0.4 — Narrative Experience 2.0.** The board and story now move together.
+The match page keeps chess on the left and the active chapter on the right,
+with a board-first mobile flow and real engine truth beneath the narrative.
 
 - **`/arena` — AI Chess Arena**: pick two agents, watch them fight live with
   engine evaluation, commentary, pause/pace control and PGN export
@@ -29,13 +30,16 @@ AI-vs-AI games run in the browser, with a real chess engine as ground truth.
 - **Stockfish agents** at configurable depth + greedy / random baseline bots
 - Finished games become **full replays** (Story Mode, bilingual narrative,
   engine analysis) built on the fly
-- Three curated **Simulation Demo** matches:
+- Three curated **Demo Story** matches:
   `/match/deepseek-vs-gpt` (#001), `/match/claude-vs-qwen` (#002),
   `/match/deepseek-vs-claude` (#003)
 - Real Stockfish (WASM, Web Worker): live evaluation, best move,
   mistake / brilliant-move detection, full-game analysis with caching
-- AI Narrative Engine (story + strategy + engine truth, EN / 中文),
-  six-chapter Story Mode, AI Player Profiles
+- A render-ready `MatchStory` / `NarrativeMoment` model with move importance
+  levels 0–5 and 4–8 meaningful moments per match
+- Three synchronized narrative layers: what happened, why it matters and the story
+- Explicit **Demo Story / Verified AI Match / Live Fallback** provenance
+- White-perspective Stockfish scores and correct before-move best-move comparison
 
 No database. No accounts. LLM commentary requires provider API keys
 (see below); everything else runs with zero configuration.
@@ -43,18 +47,15 @@ No database. No accounts. LLM commentary requires provider API keys
 ## Product Loop
 
 ```
-Simulate → Explain → Render → Share
+Simulate → Analyze → Narrate → Render
 ```
 
 1. **Simulate** — the Arena runs real games: LLM models (with API keys) and
    the actual Stockfish engine play move by move in the browser.
-2. **Explain** — every move is annotated: what changed, why the model chose it,
-   the engine evaluation, better candidates, key mistakes.
-3. **Render** — the same data becomes an interactive replay: board, eval bar,
-   timeline, narrative panel, story mode. (Later: GIF / short video / Bilibili /
-   YouTube.)
-4. **Share** — curated matches have permanent pages (e.g.
-   `/match/deepseek-vs-gpt`); arena games export to PGN.
+2. **Analyze** — Stockfish establishes evaluation, candidate moves and tactical truth.
+3. **Narrate** — ChessSim turns only the important moves into story beats and chapters.
+4. **Render** — the same structured data drives the synchronized board, story,
+   evaluation and future voice/video surfaces.
 
 ## Long-term Direction
 
@@ -129,7 +130,7 @@ src/
 │   ├── BoardThumbnail.tsx  # static mini board
 │   ├── EvaluationBar.tsx   # vertical eval bar with White/Black labels
 │   ├── EvalSparkline.tsx   # evaluation curve across the whole game
-│   ├── MoveInfo.tsx        # AI Narrative panel (story / why / engine analysis)
+│   ├── MoveInfo.tsx        # synchronized 3-layer story + engine truth panel
 │   ├── MoveTimeline.tsx    # move list with engine classifications
 │   ├── StoryMode.tsx       # six-chapter story mode (bilingual)
 │   ├── MatchCard.tsx       # featured + compact match cards
@@ -150,6 +151,7 @@ src/
 │   │   ├── heuristics.ts   # greedy + random baseline bots
 │   │   └── build-match.ts  # live game → replayable Match + auto narrative
 │   ├── types.ts            # Match / Move / Agent / Evaluation data model
+│   ├── narrative.ts        # chapter → render-ready story-moment builder
 │   ├── build.ts            # PGN expansion + annotation merge + eval curve
 │   ├── stockfish.ts        # UCI protocol client (worker-agnostic, testable)
 │   ├── engine-cache.ts     # localStorage cache for engine results
@@ -166,12 +168,14 @@ scripts/
 
 ## Data Model
 
-- **Match** — id, slug, title, theme, simulation number, white/black players,
+- **Match** — id, slug, title, provenance, white/black players,
   status, result, PGN, summary (EN/ZH), narrative (six chapters), positions
-  (FEN per ply), moves.
+  (FEN per ply), moves and a synchronized `MatchStory`.
 - **Move** — ply, moveNumber, SAN, from/to, resulting FEN, evaluation (cp or
   mate), classification (book → brilliant), commentary (EN/ZH), reasoning,
   alternative, narrative tags (turning-point, sacrifice, …).
+- **NarrativeMoment** — exact ply/FEN/SAN, importance 0–5, chapter, the three
+  narrative layers, before/after evaluation and render-safe turning-point flags.
 - **Agent** — id, name, model, provider, description, avatar accent, plus an
   AI player profile: playing style, strength, strategy.
 
@@ -200,5 +204,7 @@ Next.js (App Router) · TypeScript · Tailwind CSS · chess.js · react-chessboa
 
 ## Disclaimer
 
-All v0.1 matches are **Simulation Demos**: they use legal example games to
-demonstrate the experience and were not generated by the named models.
+All three curated matches are **Demo Stories**: they use legal example games to
+demonstrate the experience and were not generated by the named models. Live
+matches earn the **Verified AI Match** label only when no named LLM was replaced
+by an offline fallback.

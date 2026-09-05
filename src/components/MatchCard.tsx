@@ -3,7 +3,7 @@ import type { Agent, Match } from "@/lib/types";
 import { formatEval } from "@/lib/eval";
 import { formatDate } from "@/lib/format";
 import { AgentAvatar } from "./AgentAvatar";
-import { StatusBadge } from "./Badge";
+import { GenerationBadge, StatusBadge } from "./Badge";
 import { BoardThumbnail } from "./BoardThumbnail";
 
 interface MatchCardProps {
@@ -34,6 +34,7 @@ export function MatchCard({ match, whiteAgent, blackAgent, featured = false }: M
         <div className="flex flex-col p-6 sm:p-8">
           <div className="flex flex-wrap items-center gap-2.5">
             <StatusBadge status={match.status} />
+            <GenerationBadge generation={match.generation} />
             <span className="eyebrow">{match.theme}</span>
           </div>
 
@@ -70,7 +71,10 @@ export function MatchCard({ match, whiteAgent, blackAgent, featured = false }: M
             </div>
           </div>
 
-          <p className="mt-4 text-sm leading-relaxed text-muted">{match.summary}</p>
+          <div className="mt-5 border-l-2 border-bronze/60 pl-4">
+            <p className="eyebrow">{match.story.title}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{match.story.subtitle}</p>
+          </div>
 
           <div className="mt-auto flex items-center justify-between border-t border-line pt-5">
             <div className="flex gap-5 text-xs text-faint">
@@ -106,10 +110,20 @@ export function MatchCard({ match, whiteAgent, blackAgent, featured = false }: M
             <p className="text-xs text-muted">{match.theme}</p>
           </div>
         </div>
-        <StatusBadge status={match.status} />
+        <div className="flex flex-col items-end gap-2">
+          <StatusBadge status={match.status} />
+          <GenerationBadge generation={match.generation} />
+        </div>
       </div>
 
-      <p className="line-clamp-2 text-sm leading-relaxed text-muted">{match.summary}</p>
+      <div className="border-l-2 border-bronze/50 pl-3">
+        <p className="text-xs font-semibold uppercase tracking-wider text-bronze">
+          {match.story.title}
+        </p>
+        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted">
+          {match.story.subtitle}
+        </p>
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
         <div className="flex gap-4 text-xs text-faint">

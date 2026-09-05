@@ -10,7 +10,8 @@ export interface StoredEngineResult {
   best: string | null;
 }
 
-const CACHE_PREFIX = "chesssim-sf-v3:";
+// v4 invalidates pre-v0.4 scores that were stored from side-to-move POV.
+const CACHE_PREFIX = "chesssim-sf-v4:";
 
 export function toStored(r: EngineAnalysis): StoredEngineResult {
   return { cp: r.cp, mate: r.mate, depth: r.depth, best: r.bestMove };

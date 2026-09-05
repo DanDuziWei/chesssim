@@ -28,6 +28,19 @@ export interface AnalyzeOptions {
   movetime?: number;
 }
 
+/** UCI scores are relative to the side to move; ChessSim stores White POV. */
+export function toWhitePerspective(
+  fen: string,
+  score: { cp: number | null; mate: number | null }
+): { cp: number | null; mate: number | null } {
+  const sideToMove = fen.split(" ")[1];
+  const sign = sideToMove === "b" ? -1 : 1;
+  return {
+    cp: score.cp == null ? null : score.cp * sign,
+    mate: score.mate == null ? null : score.mate * sign,
+  };
+}
+
 /** Parse an `info ...` UCI line into a partial evaluation. */
 export function parseInfoLine(line: string): { depth: number; cp: number | null; mate: number | null } | null {
   if (!line.startsWith("info ")) return null;
@@ -94,10 +107,11 @@ export function createEngineClient(port: EnginePort) {
       currentAnalyze = null;
       clearTimeout(a.timeout);
       const best = line.split(" ")[1];
+      const whiteScore = toWhitePerspective(a.fen, a.lastInfo);
       a.resolve({
         fen: a.fen,
-        cp: a.lastInfo.cp,
-        mate: a.lastInfo.mate,
+        cp: whiteScore.cp,
+        mate: whiteScore.mate,
         depth: a.lastInfo.depth,
         bestMove: best && best !== "(none)" ? best : null,
       });
@@ -204,8 +218,7 @@ export function createEngineClient(port: EnginePort) {
       send("stop");
       a.resolve({
         fen: a.fen,
-        cp: a.lastInfo.cp,
-        mate: a.lastInfo.mate,
+        ...toWhitePerspective(a.fen, a.lastInfo),
         depth: a.lastInfo.depth,
         bestMove: null,
       });

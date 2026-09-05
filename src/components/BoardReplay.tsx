@@ -19,7 +19,6 @@ import {
 import { EvaluationBar } from "./EvaluationBar";
 import { MoveInfo } from "./MoveInfo";
 import { MoveTimeline } from "./MoveTimeline";
-import { StoryMode } from "./StoryMode";
 
 const Chessboard = dynamic(
   () => import("react-chessboard").then((m) => m.Chessboard),
@@ -160,27 +159,32 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
     return () => window.removeEventListener("keydown", onKey);
   }, [ply, moveCount, seek, togglePlay]);
 
-  /* current-position analysis (paused while a sweep runs) */
+  /* Analyze the current position and the position before the current move. */
   useEffect(() => {
     if (sweepRunning) return;
     let cancelled = false;
-    const fen = match.positions[ply];
-    const existing = engineResultsRef.current[ply];
-    if (existing && existing.best && existing.depth >= CURRENT_DEPTH) {
-      return; // already analyzed well enough
-    }
-    analyze(fen, CURRENT_DEPTH).then((r) => {
-      if (cancelled || !r || !r.bestMove) return;
-      const stored = toStored(r);
-      const next = [...engineResultsRef.current];
-      const prev = next[ply];
-      if (!prev || (prev.depth ?? 0) < stored.depth) {
-        next[ply] = stored;
-        engineResultsRef.current = next;
-        setEngineResults(next);
-        persist(next);
+    const indices = [...new Set([ply, Math.max(0, ply - 1)])];
+
+    void (async () => {
+      for (const index of indices) {
+        if (cancelled) return;
+        const existing = engineResultsRef.current[index];
+        if (existing && existing.best && existing.depth >= CURRENT_DEPTH) continue;
+
+        const result = await analyze(match.positions[index], CURRENT_DEPTH);
+        if (cancelled || !result?.bestMove) continue;
+        const stored = toStored(result);
+        const next = [...engineResultsRef.current];
+        const previous = next[index];
+        if (!previous || (previous.depth ?? 0) < stored.depth) {
+          next[index] = stored;
+          engineResultsRef.current = next;
+          setEngineResults(next);
+          persist(next);
+        }
       }
-    });
+    })();
+
     return () => {
       cancelled = true;
     };
@@ -221,7 +225,6 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
 
   /* ---- derived ---- */
   const move = ply > 0 ? match.moves[ply - 1] : null;
-  const prevEvaluation: Evaluation | null = ply > 1 ? match.moves[ply - 2].evaluation : null;
   const fen = match.positions[ply];
 
   const positionResult = engineResults[ply];
@@ -235,9 +238,24 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
       }
     : null;
 
+  const beforeResult = ply > 0 ? engineResults[ply - 1] : undefined;
+  const beforeFen = ply > 0 ? match.positions[ply - 1] : match.positions[0];
+  const engineAnalysisBefore: EngineAnalysis | null = beforeResult
+    ? {
+        fen: beforeFen,
+        cp: beforeResult.cp,
+        mate: beforeResult.mate,
+        depth: beforeResult.depth,
+        bestMove: beforeResult.best,
+      }
+    : null;
+
   const bestMoveSan = useMemo(
-    () => (engineAnalysis?.bestMove ? uciToSan(fen, engineAnalysis.bestMove) : null),
-    [engineAnalysis, fen]
+    () =>
+      engineAnalysisBefore?.bestMove
+        ? uciToSan(beforeFen, engineAnalysisBefore.bestMove)
+        : null,
+    [engineAnalysisBefore, beforeFen]
   );
 
   /* real evals for sparkline */
@@ -284,7 +302,13 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
       const b = evalToProxyCp(before.cp ?? 0, before.mate ?? undefined);
       const a = evalToProxyCp(after.cp ?? 0, after.mate ?? undefined);
       const sign = m.color === "w" ? 1 : -1;
-      arr.push(classifyFromDelta((a - b) * sign));
+      const inferred = classifyFromDelta((a - b) * sign);
+      const playedUci = m.from + m.to + (m.promotion ?? "");
+      arr.push(
+        before.best === playedUci && (inferred === "good" || inferred === "inaccuracy")
+          ? "best"
+          : inferred
+      );
     }
     return arr;
   }, [engineResults, match.moves, moveCount]);
@@ -316,8 +340,8 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
           styles[king] = { backgroundColor: "rgba(190,62,44,0.38)", borderRadius: "4px" };
         }
       }
-      if (move.alternative?.from && move.alternative.to) {
-        arr.push([move.alternative.from, move.alternative.to, "rgba(43,90,180,0.8)"] as Arrow);
+      if (critical) {
+        arr.push([move.from, move.to, "rgba(138,106,59,0.88)"] as Arrow);
       }
     }
     return { squareStyles: styles, arrows: arr };
@@ -353,9 +377,9 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
         </div>
       </div>
 
-      <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+      <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_420px]">
         {/* Board column */}
-        <div className="card p-4 sm:p-6">
+        <div className="card p-4 sm:p-6 lg:sticky lg:top-20">
           <div className="mx-auto flex max-w-[600px] items-stretch gap-3 sm:gap-4">
             <EvaluationBar
               evaluation={currentEval}
@@ -486,15 +510,19 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
         {/* AI Narrative panel */}
         <MoveInfo
           move={move}
-          prevEvaluation={prevEvaluation}
           whiteAgent={whiteAgent}
           blackAgent={blackAgent}
           opening={match.opening}
           premise={match.premise}
           lang={lang}
           engineAnalysis={engineAnalysis}
+          engineAnalysisBefore={engineAnalysisBefore}
           engineStatus={engineStatus}
           bestMoveSan={bestMoveSan}
+          effectiveClassification={effectiveClassification}
+          story={match.story}
+          currentPly={ply}
+          onJump={seek}
         />
       </section>
 
@@ -510,9 +538,6 @@ export function BoardReplay({ match, whiteAgent, blackAgent }: BoardReplayProps)
         />
       </div>
 
-      <div className="mt-14">
-        <StoryMode narrative={match.narrative} currentPly={ply} onJump={seek} lang={lang} />
-      </div>
     </div>
   );
 }

@@ -16,7 +16,7 @@ export function Navbar() {
             Chess<span className="text-bronze transition-colors group-hover:text-ink">Sim</span>
           </span>
           <span className="ml-2 hidden rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted sm:inline-block">
-            v0.3
+            v0.4
           </span>
         </Link>
 
@@ -25,14 +25,16 @@ export function Navbar() {
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-line/60 hover:text-ink"
+              className={`rounded-md px-2 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-line/60 hover:text-ink sm:px-3 ${
+                l.href === "/about" || l.href === "/updates" ? "hidden sm:inline-flex" : ""
+              }`}
             >
               {l.label}
             </Link>
           ))}
           <Link
             href="/matches"
-            className="ml-1 rounded-md bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition-colors hover:bg-bronze"
+            className="ml-1 hidden rounded-md bg-ink px-3.5 py-1.5 text-sm font-medium text-paper transition-colors hover:bg-bronze sm:inline-flex"
           >
             Watch
           </Link>

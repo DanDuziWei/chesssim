@@ -43,7 +43,7 @@ if (typeof sandbox.onmessage !== "function") {
 }
 
 // --- drive it with the real client ---
-const { createEngineClient, parseInfoLine } = await import(
+const { createEngineClient, parseInfoLine, toWhitePerspective } = await import(
   path.join(__dirname, "..", "src", "lib", "stockfish.ts")
 );
 
@@ -59,6 +59,16 @@ if (!parsedMate || parsedMate.mate !== -3) {
   process.exit(1);
 }
 console.log("OK   parseInfoLine");
+
+const blackToMove = toWhitePerspective(
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+  { cp: 35, mate: null }
+);
+if (blackToMove.cp !== -35) {
+  console.error("FAIL: black-to-move score was not normalized to White POV", blackToMove);
+  process.exit(1);
+}
+console.log("OK   normalize UCI score to White perspective");
 
 // 2. engine handshake + real analysis
 // The engine posts raw strings via global postMessage; forward them into the

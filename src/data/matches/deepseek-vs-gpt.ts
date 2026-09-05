@@ -16,7 +16,7 @@ export const deepseekVsGpt: MatchSeed = {
     "DeepSeek committed to a sacrificial attack and never relented. GPT defended resourcefully, but one queenside lunge left the king permanently exposed.",
   summaryZh:
     "DeepSeek 从第一步起就发动了以弃子为代价的攻王之战，全程没有松手。GPT 的防守一度顽强，但一次后翼的冒进让国王永久暴露，最终被后弃引离、底线将杀。",
-  createdAt: "2025-06-12T10:00:00Z",
+  createdAt: "2026-08-17T00:14:46+08:00",
   pgn: `1. e4 e5 2. Nf3 d6 3. d4 Bg4 4. dxe5 Bxf3 5. Qxf3 dxe5 6. Bc4 Nf6 7. Qb3 Qe7 8. Nc3 c6 9. Bg5 b5 10. Nxb5 cxb5 11. Bxb5+ Nbd7 12. O-O-O Rd8 13. Rxd7 Rxd7 14. Rd1 Qe6 15. Bxd7+ Nxd7 16. Qb8+ Nxb8 17. Rd8# 1-0`,
   checkpoints: [
     { ply: 0, cp: 0 },
@@ -176,19 +176,21 @@ export const deepseekVsGpt: MatchSeed = {
     },
   },
   narrative: {
+    title: "The Queen Was Bait",
+    zhTitle: "皇后是诱饵",
     chapters: [
       {
         id: "opening",
-        title: "Opening",
-        zhTitle: "开局",
+        title: "A King Stays in the Centre",
+        zhTitle: "留在中央的国王",
         text: "DeepSeek opens with the King's Pawn and GPT answers with the solid Philidor Defence — an early signal of the evening's dynamic: White will attack, Black will try to contain.",
         zhText:
           "DeepSeek 以王兵开局，GPT 应以稳重的菲立道尔防御——这已经预示了整盘棋的基调：白方进攻，黑方防守。",
       },
       {
         id: "battle",
-        title: "The Battle Begins",
-        zhTitle: "战火点燃",
+        title: "Pressure Without Noise",
+        zhTitle: "无声的压力",
         text: "DeepSeek pins the f6-knight with 9.Bg5, and the pressure on GPT's uncastled king begins to build. The battle has left the opening and entered the middlegame.",
         zhText:
           "DeepSeek 以 9.Bg5 牵制 f6 马，对尚未易位的黑王步步施压。战斗正式离开开局，进入中局。",
@@ -196,8 +198,8 @@ export const deepseekVsGpt: MatchSeed = {
       },
       {
         id: "critical",
-        title: "Critical Moment",
-        zhTitle: "关键一刻",
+        title: "A Door Opens on b5",
+        zhTitle: "b5 打开一扇门",
         text: "GPT's queenside lunge 9...b5 — the moment the game turned — weakened its king and handed DeepSeek the exact lever it needed.",
         zhText:
           "GPT 的后翼冒进 9...b5 是整盘棋的转折时刻：它削弱了自己的防线，也把 DeepSeek 需要的撬棍递了过去。",
@@ -205,8 +207,8 @@ export const deepseekVsGpt: MatchSeed = {
       },
       {
         id: "turning",
-        title: "Turning Point",
-        zhTitle: "转折点",
+        title: "The Knight Goes In",
+        zhTitle: "骑士入阵",
         text: "DeepSeek sacrifices a knight on b5, opening lines toward the black monarch and converting material into a relentless initiative.",
         zhText:
           "DeepSeek 在 b5 弃马，撕开通向黑王的线路，把物质转化为永不停歇的攻势。",
@@ -214,8 +216,8 @@ export const deepseekVsGpt: MatchSeed = {
       },
       {
         id: "finale",
-        title: "Final Attack",
-        zhTitle: "最后总攻",
+        title: "The Queen Was Bait",
+        zhTitle: "皇后是诱饵",
         text: "A final queen sacrifice on b8 deflects the defender, and the rook delivers a back-rank mate on d8.",
         zhText:
           "最后的皇后献祭落在 b8，引开唯一守将——车随即在 d8 完成底线将杀。",
@@ -223,8 +225,8 @@ export const deepseekVsGpt: MatchSeed = {
       },
       {
         id: "conclusion",
-        title: "Conclusion",
-        zhTitle: "终局",
+        title: "No Way Out",
+        zhTitle: "无路可退",
         text: "In seventeen moves, DeepSeek never once traded attack for material. The game is a pure expression of the platform's thesis: two intelligences, one board, and a story you can follow without knowing a single opening line.",
         zhText:
           "十七个回合里，DeepSeek 从未用攻势去换物质。这盘棋完美诠释了 ChessSim 的理念：两个智能，一张棋盘，一段无需任何棋理储备就能看懂的故事。",

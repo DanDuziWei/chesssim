@@ -1,4 +1,4 @@
-import type { MatchResult, MatchStatus } from "@/lib/types";
+import type { MatchGeneration, MatchResult, MatchStatus } from "@/lib/types";
 import type { EvalCheckpoint, MoveAnnotationInput } from "@/lib/build";
 
 export interface ChapterSeed {
@@ -12,6 +12,8 @@ export interface ChapterSeed {
 }
 
 export interface NarrativeSeed {
+  title?: string;
+  zhTitle?: string;
   chapters: ChapterSeed[];
   summary: string;
   summaryZh: string;
@@ -28,6 +30,7 @@ export interface MatchSeed {
   blackAgentId: string;
   opening: string;
   premise: string;
+  generation?: MatchGeneration;
   summary: string;
   summaryZh: string;
   createdAt: string;

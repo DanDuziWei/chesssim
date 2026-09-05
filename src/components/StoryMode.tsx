@@ -1,9 +1,9 @@
 "use client";
 
-import type { Language, Narrative } from "@/lib/types";
+import type { Language, MatchStory } from "@/lib/types";
 
 interface StoryModeProps {
-  narrative: Narrative;
+  narrative: MatchStory;
   currentPly: number;
   onJump: (ply: number) => void;
   lang: Language;
