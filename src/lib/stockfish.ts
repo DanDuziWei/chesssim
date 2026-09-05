@@ -77,6 +77,9 @@ export function createEngineClient(port: EnginePort) {
 
   /** Set when a search was interrupted: the next `bestmove` is stale and ignored. */
   let ignoreNextBestmove = false;
+  let drainPromise: Promise<void> = Promise.resolve();
+  let drainResolve: (() => void) | null = null;
+  let analyzeGeneration = 0;
   let destroyed = false;
 
   const handleLine = (raw: unknown) => {
@@ -100,6 +103,8 @@ export function createEngineClient(port: EnginePort) {
       if (ignoreNextBestmove) {
         // Stale bestmove from a cancelled search.
         ignoreNextBestmove = false;
+        drainResolve?.();
+        drainResolve = null;
         return;
       }
       const a = currentAnalyze;
@@ -166,10 +171,44 @@ export function createEngineClient(port: EnginePort) {
     return Promise.all([uciPromise, readyPromise]).then(() => undefined);
   }
 
-  /** Analyze a FEN. Stops any in-flight search first. */
-  function analyze(fen: string, opts: AnalyzeOptions = {}): Promise<EngineAnalysis> {
+  function emptyAnalysis(fen: string): EngineAnalysis {
+    return { fen, cp: null, mate: null, depth: 0, bestMove: null };
+  }
+
+  /**
+   * Interrupt an in-flight search and wait for its stale `bestmove` before a
+   * new `position` command is sent. UCI engines finish `stop` asynchronously;
+   * without this drain, rapid story navigation can attach old `info` lines to
+   * the newly selected position.
+   */
+  function interruptCurrentSearch(): Promise<void> {
+    if (!currentAnalyze) return drainPromise;
+
+    const a = currentAnalyze;
+    currentAnalyze = null;
+    clearTimeout(a.timeout);
+    ignoreNextBestmove = true;
+    drainPromise = new Promise<void>((resolve) => {
+      drainResolve = resolve;
+    });
+    send("stop");
+    a.resolve({
+      fen: a.fen,
+      ...toWhitePerspective(a.fen, a.lastInfo),
+      depth: a.lastInfo.depth,
+      bestMove: null,
+    });
+    return drainPromise;
+  }
+
+  /** Analyze a FEN. Latest request wins after any previous search is drained. */
+  async function analyze(fen: string, opts: AnalyzeOptions = {}): Promise<EngineAnalysis> {
     if (destroyed) return Promise.reject(new Error("Engine client destroyed"));
-    stop();
+    const requestGeneration = ++analyzeGeneration;
+    await interruptCurrentSearch();
+
+    if (destroyed) throw new Error("Engine client destroyed");
+    if (requestGeneration !== analyzeGeneration) return emptyAnalysis(fen);
 
     const depth = opts.depth ?? 14;
 
@@ -179,13 +218,7 @@ export function createEngineClient(port: EnginePort) {
         if (currentAnalyze) {
           send("stop");
         } else {
-          resolve({
-            fen,
-            cp: null,
-            mate: null,
-            depth: 0,
-            bestMove: null,
-          });
+          resolve(emptyAnalysis(fen));
         }
       }, Math.max(800, opts.movetime ?? 8000));
 
@@ -210,24 +243,13 @@ export function createEngineClient(port: EnginePort) {
 
   /** Interrupt any in-flight search (the engine replies with a stale bestmove we drop). */
   function stop() {
-    if (currentAnalyze) {
-      const a = currentAnalyze;
-      currentAnalyze = null;
-      clearTimeout(a.timeout);
-      ignoreNextBestmove = true;
-      send("stop");
-      a.resolve({
-        fen: a.fen,
-        ...toWhitePerspective(a.fen, a.lastInfo),
-        depth: a.lastInfo.depth,
-        bestMove: null,
-      });
-    }
+    analyzeGeneration++;
+    void interruptCurrentSearch();
   }
 
   function destroy() {
-    destroyed = true;
     stop();
+    destroyed = true;
     port.terminate?.();
   }
 
