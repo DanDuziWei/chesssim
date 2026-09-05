@@ -70,7 +70,43 @@ if (blackToMove.cp !== -35) {
 }
 console.log("OK   normalize UCI score to White perspective");
 
-// 2. engine handshake + real analysis
+// 2. cancellation race: a stale bestmove must be drained before the newest
+// position starts, and superseded queued requests must never start a search.
+const fakePort = { onmessage: null, commands: [] };
+fakePort.postMessage = (command) => fakePort.commands.push(command);
+const raceClient = createEngineClient(fakePort);
+const FEN_A = "8/8/8/8/8/8/8/K6k w - - 0 1";
+const FEN_B = "8/8/8/8/8/8/8/K6k b - - 0 1";
+const FEN_C = "8/8/8/8/8/8/K7/7k w - - 0 1";
+const aPromise = raceClient.analyze(FEN_A, { depth: 4 });
+await Promise.resolve();
+const bPromise = raceClient.analyze(FEN_B, { depth: 4 });
+const cPromise = raceClient.analyze(FEN_C, { depth: 4 });
+fakePort.onmessage({ data: "info depth 4 score cp 999 pv a1a2" });
+fakePort.onmessage({ data: "bestmove a1a2" });
+await Promise.resolve();
+await Promise.resolve();
+
+const searchedPositions = fakePort.commands.filter((command) => command.startsWith("position fen "));
+if (
+  searchedPositions.length !== 2 ||
+  searchedPositions[0] !== `position fen ${FEN_A}` ||
+  searchedPositions[1] !== `position fen ${FEN_C}`
+) {
+  console.error("FAIL: latest-request-wins search queue", fakePort.commands);
+  process.exit(1);
+}
+fakePort.onmessage({ data: "info depth 4 score cp 25 pv a2a3" });
+fakePort.onmessage({ data: "bestmove a2a3" });
+const [, bResult, cResult] = await Promise.all([aPromise, bPromise, cPromise]);
+if (bResult.bestMove !== null || cResult.bestMove !== "a2a3" || cResult.cp !== 25) {
+  console.error("FAIL: cancellation result isolation", { bResult, cResult });
+  process.exit(1);
+}
+raceClient.destroy();
+console.log("OK   rapid navigation keeps only the newest engine search");
+
+// 3. engine handshake + real analysis
 // The engine posts raw strings via global postMessage; forward them into the
 // client through a Worker-like `port` object.
 const port = { postMessage: null, onmessage: null };
@@ -102,6 +138,17 @@ console.log(
 );
 if (r2.mate === null || r2.bestMove === null) {
   console.error("FAIL: engine did not find the mate");
+  process.exit(1);
+}
+
+const OPERA_SACRIFICE_FEN =
+  "rn2kb1r/p3qppp/2p2n2/1N2p1B1/2B1P3/1Q6/PPP2PPP/R3K2R b KQkq - 0 10";
+const r3 = await client.analyze(OPERA_SACRIFICE_FEN, { depth: 18 });
+console.log(
+  `OK   Opera sacrifice depth ${r3.depth}: cp=${r3.cp} mate=${r3.mate} bestmove=${r3.bestMove}`
+);
+if (r3.cp === null || r3.cp < 100 || r3.bestMove !== "e7b4") {
+  console.error("FAIL: Opera sacrifice score was not normalized to White POV", r3);
   process.exit(1);
 }
 
