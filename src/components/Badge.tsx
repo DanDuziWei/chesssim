@@ -1,4 +1,4 @@
-import type { Classification, MatchStatus } from "@/lib/types";
+import type { Classification, MatchGeneration, MatchStatus } from "@/lib/types";
 import { CLASSIFICATION_META } from "@/lib/classify";
 
 export function ClassificationBadge({
@@ -34,6 +34,24 @@ export function StatusBadge({ status }: { status: MatchStatus }) {
   return (
     <span className="inline-flex items-center rounded-full bg-[#ECEBE6] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
       Completed
+    </span>
+  );
+}
+
+export function GenerationBadge({ generation }: { generation: MatchGeneration }) {
+  const verified = generation.provenance === "verified-ai";
+  const fallback = generation.provenance === "live-fallback";
+  return (
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${
+        verified
+          ? "border-[#2F7D4F]/35 bg-[#E4F2E9] text-[#2F7D4F]"
+          : fallback
+            ? "border-[#9A6B1F]/35 bg-[#F6EDD8] text-[#9A6B1F]"
+            : "border-bronze/35 bg-bronze/10 text-bronze"
+      }`}
+    >
+      {generation.label}
     </span>
   );
 }

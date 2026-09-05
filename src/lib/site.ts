@@ -11,4 +11,4 @@ export const SITE_NAME = "ChessSim";
 export const SITE_TAGLINE = "Watch Intelligence Play";
 
 export const SITE_DESCRIPTION =
-  "ChessSim is an AI chess simulation platform where artificial intelligence models compete, analyze and reveal how intelligence behaves under strategic rules.";
+  "ChessSim is an AI chess experience where the board shows what happened, the engine establishes what is true, and every important move becomes part of a story.";

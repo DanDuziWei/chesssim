@@ -26,20 +26,22 @@ export default function ArenaPage() {
 
       <ArenaSim />
 
-      <div className="mt-14 grid gap-4 text-sm text-muted sm:grid-cols-3">
+      <div className="mt-14 grid gap-4 text-sm text-muted sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-line bg-surface px-4 py-3">
           <span className="font-semibold text-bronze">Simulate</span> — the game
           is played for real, move by move, in your browser.
         </div>
         <div className="rounded-lg border border-line bg-surface px-4 py-3">
-          <span className="font-semibold text-bronze">Explain</span> — every
-          move gets engine truth plus commentary; LLM moves carry the model's
-          own reasoning.
+          <span className="font-semibold text-bronze">Analyze</span> — the real
+          Stockfish engine supplies evaluation and tactical truth.
         </div>
         <div className="rounded-lg border border-line bg-surface px-4 py-3">
-          <span className="font-semibold text-bronze">Render & Share</span> —
-          the finished game becomes a full replay with story mode, and the PGN
-          can be exported or copied.
+          <span className="font-semibold text-bronze">Narrate</span> — important
+          moves become story beats while routine moves stay concise.
+        </div>
+        <div className="rounded-lg border border-line bg-surface px-4 py-3">
+          <span className="font-semibold text-bronze">Render</span> — the
+          finished game becomes a synchronized board-and-story replay.
         </div>
       </div>
     </div>

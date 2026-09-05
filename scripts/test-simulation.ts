@@ -147,7 +147,13 @@ async function main() {
     lang: "en",
   });
   check("live match positions length", match.positions.length === moves.length + 1, match.positions.length);
-  check("live match chapters = 6", match.narrative.chapters.length === 6);
+  check("live match chapters = 6", match.story.chapters.length === 6);
+  check(
+    "live match has 4-8 addressable story moments",
+    match.story.moments.length >= 4 && match.story.moments.length <= 8,
+    match.story.moments.length
+  );
+  check("live match provenance is explicit", match.generation.provenance === "verified-ai", match.generation);
   check("live match has zh + en summary", match.summary.length > 0 && match.summaryZh.length > 0);
   check("live match move count", match.moveCount === moves.length);
   check("agent registry has 9 agents", SIM_AGENTS.length === 9, SIM_AGENTS.map((a) => a.id));

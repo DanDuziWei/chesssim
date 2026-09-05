@@ -16,7 +16,7 @@ export const deepseekVsClaude: MatchSeed = {
     "Claude's long-horizon combination — launched with a queen sacrifice and sustained through a windmill of checks — turned a quiet opening into one of the most celebrated attacks ever played.",
   summaryZh:
     "Claude 的长线组合——以弃后开局、以风车将军推进——把一盘安静的开局变成了史上最著名的进攻之一。DeepSeek 过早的中心扩张，恰好递上了 Claude 需要的全部杠杆。",
-  createdAt: "2025-06-16T20:15:00Z",
+  createdAt: "2026-08-17T00:14:46+08:00",
   pgn: `1. Nf3 Nf6 2. c4 g6 3. Nc3 Bg7 4. d4 O-O 5. Bf4 d5 6. Qb3 dxc4 7. Qxc4 c6 8. e4 Nbd7 9. Rd1 Nb6 10. Qc5 Bg4 11. Bg5 Na4 12. Qa3 Nxc3 13. bxc3 Nxe4 14. Bxe7 Qb6 15. Bc4 Nxc3 16. Bc5 Rfe8+ 17. Kf1 Be6 18. Bxb6 Bxc4+ 19. Kg1 Ne2+ 20. Kf1 Nxd4+ 21. Kg1 Ne2+ 22. Kf1 Nc3+ 23. Kg1 axb6 24. Qb4 Ra4 25. Qxb6 Nxd1 26. h3 Rxa2 27. Kh2 Nxf2 28. Re1 Rxe1 29. Qd8+ Bf8 30. Nxe1 Bd5 31. Nf3 Ne4 32. Qb8 b5 33. h4 h5 34. Ne5 Kg7 35. Kg1 Bc5+ 36. Kf1 Ng3+ 37. Ke1 Bb4+ 38. Kd1 Bb3+ 39. Kc1 Ne2+ 40. Kb1 Nc3+ 41. Kc1 Rc2# 0-1`,
   checkpoints: [
     { ply: 0, cp: 0 },
@@ -125,19 +125,21 @@ export const deepseekVsClaude: MatchSeed = {
     },
   },
   narrative: {
+    title: "The Queen Walks Into the Trap",
+    zhTitle: "皇后走进陷阱",
     chapters: [
       {
         id: "opening",
-        title: "Opening",
-        zhTitle: "开局",
+        title: "A Patient Beginning",
+        zhTitle: "耐心的序幕",
         text: "DeepSeek plays the Réti-style 1.Nf3 and builds a broad centre, while Claude fianchettoes and waits. The stage is set for a long, patient struggle.",
         zhText:
           "DeepSeek 以列蒂式的 1.Nf3 开局并构筑宽阔中心，Claude 则侧翼出象静静等待。一场漫长而耐心的较量拉开序幕。",
       },
       {
         id: "battle",
-        title: "The Battle Begins",
-        zhTitle: "战火点燃",
+        title: "The Centre Comes Loose",
+        zhTitle: "中心开始松动",
         text: "Claude regains the pawn with 13...Nxe4, and suddenly every one of DeepSeek's central pieces feels loose.",
         zhText:
           "Claude 用 13...Nxe4 夺回兵——刹那间，DeepSeek 中心的所有棋子都开始松动。",
@@ -145,8 +147,8 @@ export const deepseekVsClaude: MatchSeed = {
       },
       {
         id: "critical",
-        title: "Critical Moment",
-        zhTitle: "关键一刻",
+        title: "An Offer Too Good to Refuse",
+        zhTitle: "无法拒绝的诱饵",
         text: "Claude offers the queen with 17...Be6, and the position explodes into a combination that will be studied for decades.",
         zhText:
           "Claude 以 17...Be6 献出皇后，局面瞬间爆炸——一套将被后世研究数十年的组合就此展开。",
@@ -154,8 +156,8 @@ export const deepseekVsClaude: MatchSeed = {
       },
       {
         id: "turning",
-        title: "Turning Point",
-        zhTitle: "转折点",
+        title: "The Trap Snaps Shut",
+        zhTitle: "陷阱合拢",
         text: "DeepSeek takes the offered queen, and the trap snaps shut: a windmill of knight checks begins, and the white king is dragged across the board.",
         zhText:
           "DeepSeek 吃下献上的皇后，陷阱随即合拢：黑马开始风车将军，白王被一路拖拽穿过整个棋盘。",
@@ -163,8 +165,8 @@ export const deepseekVsClaude: MatchSeed = {
       },
       {
         id: "finale",
-        title: "Final Attack",
-        zhTitle: "最后总攻",
+        title: "The King Is Dragged Away",
+        zhTitle: "国王被拖离阵地",
         text: "A windmill of checks forces the white king across the board until Claude's rook delivers mate on c2.",
         zhText:
           "风车将军把白王逼过整个棋盘，直到 Claude 的车在 c2 完成将杀。",
@@ -172,8 +174,8 @@ export const deepseekVsClaude: MatchSeed = {
       },
       {
         id: "conclusion",
-        title: "Conclusion",
-        zhTitle: "终局",
+        title: "Seen Seventeen Moves Earlier",
+        zhTitle: "十七步之前已经看见",
         text: "The game lasted 41 moves, but it was decided on move 17. Claude saw the entire forcing sequence before offering the queen — long-horizon strategy in its purest, most beautiful form.",
         zhText:
           "棋局持续了 41 回合，但早在第 17 回合就已定局。Claude 在献后之前便算清了整个强制序列——这是长线战略最纯粹、最美丽的形态。",

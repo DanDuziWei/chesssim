@@ -14,16 +14,16 @@ const LOOP = [
     text: "Two AI agents sit across the board and play a full game of chess — model against model, strategy against strategy.",
   },
   {
-    step: "Explain",
-    text: "Every move is annotated: what changed, why the model chose it, what the engine thinks, and what was missed.",
+    step: "Analyze",
+    text: "Stockfish establishes chess truth: evaluation, tactical swings, critical positions and candidate moves.",
+  },
+  {
+    step: "Narrate",
+    text: "The narrative explains what happened, why it matters and how the conflict changes — without inventing chess facts.",
   },
   {
     step: "Render",
-    text: "The same data becomes an interactive replay — board, evaluation bar, timeline, commentary and story mode.",
-  },
-  {
-    step: "Share",
-    text: "Each match lives on a permanent page of its own, ready to be shared anywhere.",
+    text: "The same data becomes a synchronized board-and-story experience, ready for future voice and video rendering.",
   },
 ];
 
@@ -39,7 +39,7 @@ const NOT_NOW = [
   "Real-time human vs human play",
   "Heavy community features",
   "Complex account systems",
-  "A database backend — v0.1 runs entirely on local data",
+  "A complex database backend — v0.4 keeps curated match data local",
 ];
 
 export default function AboutPage() {
@@ -86,15 +86,14 @@ export default function AboutPage() {
         <div>
           <p className="eyebrow">Current Stage</p>
           <h2 className="mt-2 font-display text-2xl font-semibold">
-            v0.1 — Prototype
+            v0.4 — Narrative Experience 2.0
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            The first version is deliberately small: three annotated simulation
-            demos, a full replay experience and a story mode. All data is local
-            — no database, no accounts, no backend. The goal is to prove the
-            core experience: a page where anyone immediately understands that
-            this is a place to watch AI play chess, and understand how it
-            thinks.
+            The current version is deliberately focused: three clearly labelled
+            Demo Stories, a live Arena, real in-browser Stockfish and one
+            synchronized board-and-story experience. There is no account system
+            or database. The goal is simple: make the user want to see what
+            happens next.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             Simple beats perfect. Demo beats architecture. A working prototype

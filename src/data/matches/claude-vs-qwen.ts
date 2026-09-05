@@ -16,7 +16,7 @@ export const claudeVsQwen: MatchSeed = {
     "Qwen never allowed a single tactical outburst; it constricted Claude move by move until the position suffocated itself, ending in the immortal zugzwang.",
   summaryZh:
     "Qwen 全程没有给任何战术爆发留下机会，只是步步收紧，让 Claude 的棋局逐渐窒息，最终走向不朽的楚茨文克（zugzwang）——每一步都在输。",
-  createdAt: "2025-06-14T09:30:00Z",
+  createdAt: "2026-08-17T00:14:46+08:00",
   pgn: `1. d4 Nf6 2. c4 e6 3. Nf3 b6 4. g3 Bb7 5. Bg2 Be7 6. Nc3 O-O 7. O-O d5 8. Ne5 c6 9. cxd5 cxd5 10. Bf4 a6 11. Rc1 b5 12. Qb3 Nc6 13. Nxc6 Bxc6 14. h3 Qd7 15. Kh2 Nh5 16. Bd2 f5 17. Qd1 b4 18. Nb1 Bb5 19. Rg1 Bd6 20. e4 fxe4 21. Qxh5 Rxf2 22. Qg5 Raf8 23. Kh1 R8f5 24. Qe3 Bd3 25. Rce1 h6 0-1`,
   checkpoints: [
     { ply: 0, cp: 0 },
@@ -138,19 +138,21 @@ export const claudeVsQwen: MatchSeed = {
     },
   },
   narrative: {
+    title: "Every Move Makes the Room Smaller",
+    zhTitle: "每一步都让空间更小",
     chapters: [
       {
         id: "opening",
-        title: "Opening",
-        zhTitle: "开局",
+        title: "Space Against Patience",
+        zhTitle: "空间与耐心",
         text: "Claude builds a broad centre and fianchettoes, while Qwen counters with a hypermodern queen's-side setup. From the very first moves, it is space against flexibility.",
         zhText:
           "Claude 构筑宽阔中心并侧翼出象，Qwen 则以超现代的布局应对。从第一步起，这就是空间与弹性之争。",
       },
       {
         id: "battle",
-        title: "The Battle Begins",
-        zhTitle: "战火点燃",
+        title: "The Wall on the Queenside",
+        zhTitle: "后翼的围墙",
         text: "Qwen stakes a claim on the queenside with ...b5, the first sign that this game will be decided by slow pressure rather than fireworks.",
         zhText:
           "Qwen 以 ...b5 在后翼宣告主权——第一个信号表明：这盘棋将由缓慢的压力而非烟花般的战术决定。",
@@ -158,8 +160,8 @@ export const claudeVsQwen: MatchSeed = {
       },
       {
         id: "critical",
-        title: "Critical Moment",
-        zhTitle: "关键一刻",
+        title: "Claude Opens the Wrong Door",
+        zhTitle: "Claude 打开了错的门",
         text: "Claude's impatient 20.e4 cracked open its own king; in a closed position it had to wait, but the centre break handed Qwen the open lines.",
         zhText:
           "Claude 急躁的 20.e4 亲手打开了己方的王前阵地。封闭局面本该等待，这步中心突破却把开放线路送给了 Qwen。",
@@ -167,8 +169,8 @@ export const claudeVsQwen: MatchSeed = {
       },
       {
         id: "turning",
-        title: "Turning Point",
-        zhTitle: "转折点",
+        title: "The Rook Breaks Through",
+        zhTitle: "车终于突入",
         text: "Qwen's rook storms onto f2, and the bind that had been building for twenty moves finally bites.",
         zhText:
           "Qwen 的车冲上 f2——酝酿了二十回合的束缚终于合拢咬合。",
@@ -176,8 +178,8 @@ export const claudeVsQwen: MatchSeed = {
       },
       {
         id: "finale",
-        title: "Final Attack",
-        zhTitle: "最后总攻",
+        title: "Every Move Loses",
+        zhTitle: "每一步都在输",
         text: "Qwen's bishop lands on d3 and White falls into the immortal zugzwang — a position where every single legal move loses.",
         zhText:
           "Qwen 的象落在 d3，白方坠入不朽的楚茨文克——一个每一步合法着法都会输棋的局面。",
@@ -185,8 +187,8 @@ export const claudeVsQwen: MatchSeed = {
       },
       {
         id: "conclusion",
-        title: "Conclusion",
-        zhTitle: "终局",
+        title: "The Attack That Never Came",
+        zhTitle: "从未发动的进攻",
         text: "There were no sacrifices and no brilliancies — only twenty-five moves of quiet constriction. Qwen proved that in chess, the most brutal attack is sometimes the one that never comes.",
         zhText:
           "没有弃子，没有妙手——只有二十五个回合安静的绞杀。Qwen 证明了：在国际象棋里，最凶残的进攻，有时恰恰是那场从未发动的进攻。",

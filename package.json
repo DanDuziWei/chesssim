@@ -1,6 +1,6 @@
 {
   "name": "chesssim",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "AI-powered chess simulation & entertainment platform — Watch intelligence play.",
   "scripts": {

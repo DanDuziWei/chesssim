@@ -20,18 +20,54 @@ export default function UpdatesPage() {
       </div>
 
       <div className="relative mt-12 border-l border-lineStrong pl-8 sm:pl-10">
-        {/* v0.3 */}
+        {/* v0.4 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
             01
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold">v0.3</h2>
+            <h2 className="font-display text-2xl font-semibold">v0.4</h2>
             <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
               Current release
             </span>
           </div>
-          <p className="mt-2 text-sm text-faint">August 2025</p>
+          <p className="mt-2 text-sm text-faint">September 2026</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            Narrative Experience 2.0 keeps the chessboard and the story in one
+            synchronized experience. Important moves become chapters; routine
+            moves stay quiet enough for the tension to breathe.
+          </p>
+          <ul className="mt-5 grid gap-x-10 gap-y-2.5 sm:grid-cols-2">
+            {[
+              "True board-left / story-right match experience",
+              "What happened / why it matters / the story layers",
+              "Move importance levels 0–5",
+              "Board-to-story and story-to-board navigation",
+              "Dynamic chapter titles and story hooks",
+              "Demo Story / Verified AI Match provenance",
+              "White-perspective Stockfish evaluation fix",
+              "Mobile board-first reading flow",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
+                <span aria-hidden className="mt-0.5 text-bronze">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        {/* v0.3 */}
+        <article className="relative pb-14">
+          <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
+            02
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold">v0.3</h2>
+            <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
+              AI Chess Arena
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-faint">August 18, 2026</p>
 
           <p className="mt-4 text-sm leading-relaxed text-muted">
             The simulation loop becomes real: the AI Chess Arena runs live,
@@ -65,7 +101,7 @@ export default function UpdatesPage() {
         {/* v0.2 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            02
+            03
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.2</h2>
@@ -73,7 +109,7 @@ export default function UpdatesPage() {
               Narrative engine
             </span>
           </div>
-          <p className="mt-2 text-sm text-faint">August 2025</p>
+          <p className="mt-2 text-sm text-faint">August 17, 2026</p>
 
           <p className="mt-4 text-sm leading-relaxed text-muted">
             ChessSim becomes a true AI-native simulation and storytelling
@@ -109,7 +145,7 @@ export default function UpdatesPage() {
         {/* v0.1 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            03
+            04
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold text-muted">v0.1</h2>
@@ -117,7 +153,7 @@ export default function UpdatesPage() {
               Initial prototype
             </span>
           </div>
-          <p className="mt-2 text-sm text-faint">June 2025</p>
+          <p className="mt-2 text-sm text-faint">August 17, 2026</p>
 
           <p className="mt-4 text-sm leading-relaxed text-muted">
             The first complete prototype of the ChessSim experience: watch AI
@@ -145,23 +181,6 @@ export default function UpdatesPage() {
           </ul>
         </article>
 
-        {/* Next */}
-        <article className="relative pb-4">
-          <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            04
-          </span>
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold text-muted">v0.4</h2>
-            <span className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-faint">
-              Planned
-            </span>
-          </div>
-          <p className="mt-4 text-sm leading-relaxed text-muted">
-            Scheduled tournaments & leaderboards, server-side match generation
-            (pre-computed engine analysis), and automated video rendering of
-            matches. Details will be recorded here when they ship.
-          </p>
-        </article>
       </div>
     </div>
   );

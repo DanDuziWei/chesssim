@@ -9,6 +9,7 @@ import type {
 } from "@/lib/types";
 import type { SimAgent } from "./agents";
 import { defaultCommentary, defaultCommentaryZh } from "@/lib/build";
+import { buildMatchStory } from "@/lib/narrative";
 
 /** One move recorded during a live simulation. */
 export interface LiveMove {
@@ -239,6 +240,26 @@ export function buildMatchFromLiveGame(params: {
     : `对局在 ${moves.length} 个回合后以和棋收场——${result.reason}。`;
 
   const theme = `${white.name} vs ${black.name}`;
+  const verified = moves.every((move) => {
+    const agent = move.color === "w" ? white : black;
+    if (move.fallback) return false;
+    return agent.kind !== "llm" || move.fromLlm;
+  });
+
+  const story = buildMatchStory({
+    title: bestForWinner
+      ? `${winnerName ?? "The winner"} Sees ${bestForWinner.san}`
+      : "A Game Takes Shape",
+    zhTitle: bestForWinner ? `${winnerName ?? "胜者"}看到了 ${bestForWinner.san}` : "一盘棋逐渐成形",
+    subtitle: summary,
+    zhSubtitle: summaryZh,
+    opening: `${white.name} and ${black.name} begin from equal terms.`,
+    chapters,
+    moves: moveObjs,
+    positions,
+    summary,
+    summaryZh,
+  });
 
   return {
     id: params.slug,
@@ -260,10 +281,23 @@ export function buildMatchFromLiveGame(params: {
     summaryZh,
     createdAt: new Date().toISOString(),
     premise: `${white.name} and ${black.name} played a live, move-by-move simulation in the ChessSim arena. Every evaluation was computed by the real Stockfish engine.`,
+    generation: verified
+      ? {
+          provenance: "verified-ai",
+          label: "Verified AI Match",
+          description:
+            "Generated move by move in ChessSim by the agents named here, with no offline substitutions.",
+        }
+      : {
+          provenance: "live-fallback",
+          label: "Live Fallback Match",
+          description:
+            "Generated live in ChessSim, but at least one named LLM move used a disclosed local fallback.",
+        },
     moves: moveObjs,
     positions,
     finalEvaluation: moves.length ? evalOf(moves[moves.length - 1]) : { cp: 0 },
-    narrative: { chapters, summary, summaryZh },
+    story,
     moveCount: moves.length,
   };
 }

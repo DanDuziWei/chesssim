@@ -6,7 +6,7 @@ import type { Agent } from "@/lib/types";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { BoardReplay } from "@/components/BoardReplay";
 import { MatchCard } from "@/components/MatchCard";
-import { StatusBadge } from "@/components/Badge";
+import { GenerationBadge, StatusBadge } from "@/components/Badge";
 import { formatEval } from "@/lib/eval";
 import { formatDate } from "@/lib/format";
 
@@ -82,8 +82,8 @@ export default async function MatchPage({ params }: MatchPageProps) {
   const others = getAllMatches().filter((m) => m.slug !== match.slug);
 
   return (
-    <div className="container-page py-10 sm:py-14">
-      <nav className="text-sm text-faint">
+    <div className="container-page py-6 sm:py-8">
+      <nav className="hidden text-sm text-faint sm:block">
         <Link href="/matches" className="transition-colors hover:text-bronze">
           Matches
         </Link>
@@ -92,50 +92,48 @@ export default async function MatchPage({ params }: MatchPageProps) {
       </nav>
 
       {/* Header */}
-      <header className="mt-6 border-b border-line pb-8">
+      <header className="mt-3 border-b border-line pb-5">
         <div className="flex flex-wrap items-center gap-2.5">
-          <StatusBadge status={match.status} />
+          <span className="hidden sm:inline-flex"><StatusBadge status={match.status} /></span>
           <span className="eyebrow">{match.theme}</span>
-          <span className="rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted">
+          <span className="hidden rounded-full border border-line bg-surface px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-muted sm:inline-flex">
             {match.simulationNumber}
           </span>
-          <span className="rounded-full border border-bronze/40 bg-bronze/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-bronze">
-            Simulation Demo
-          </span>
+          <GenerationBadge generation={match.generation} />
         </div>
 
-        <h1 className="mt-4 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
           {match.title}
         </h1>
 
-        <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mt-4 flex items-center justify-between gap-4">
           {/* Players */}
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-8">
             <div className="flex items-center gap-3">
-              <AgentAvatar agent={white} size="lg" />
+              <AgentAvatar agent={white} size="md" />
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-faint">
                   White
                 </p>
                 <p className="font-display text-xl font-semibold">{white.name}</p>
-                <p className="text-xs text-muted">{white.model}</p>
+                <p className="hidden text-xs text-muted sm:block">{white.model}</p>
               </div>
             </div>
             <span className="font-display text-xl text-faint">vs</span>
             <div className="flex items-center gap-3">
-              <AgentAvatar agent={black} size="lg" />
+              <AgentAvatar agent={black} size="md" />
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-faint">
                   Black
                 </p>
                 <p className="font-display text-xl font-semibold">{black.name}</p>
-                <p className="text-xs text-muted">{black.model}</p>
+                <p className="hidden text-xs text-muted sm:block">{black.model}</p>
               </div>
             </div>
           </div>
 
           {/* Result */}
-          <div className="lg:text-right">
+          <div className="hidden text-right sm:block">
             <p className="font-display text-3xl font-semibold tracking-tight sm:text-4xl">
               {match.result}
             </p>
@@ -143,8 +141,9 @@ export default async function MatchPage({ params }: MatchPageProps) {
           </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-faint">
+        <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-faint">
           <span className="uppercase tracking-wider">{match.opening}</span>
+          <span className="font-semibold text-ink sm:hidden">{match.result}</span>
           <span className="tabular-nums">{match.moveCount} plies</span>
           <span>{formatDate(match.createdAt)}</span>
           <span className="tabular-nums">
@@ -152,11 +151,19 @@ export default async function MatchPage({ params }: MatchPageProps) {
               ? "Checkmate"
               : `Final eval ${formatEval(match.finalEvaluation)}`}
           </span>
+          <details className="group text-muted">
+            <summary className="cursor-pointer font-medium text-bronze hover:text-ink">
+              How this match was generated
+            </summary>
+            <p className="mt-2 max-w-2xl rounded-lg border border-line bg-surface px-3 py-2 leading-relaxed text-muted">
+              {match.generation.description}
+            </p>
+          </details>
         </div>
       </header>
 
       {/* Replay */}
-      <div className="mt-8">
+      <div className="mt-5">
         <BoardReplay match={match} whiteAgent={white} blackAgent={black} />
       </div>
 
@@ -174,12 +181,9 @@ export default async function MatchPage({ params }: MatchPageProps) {
 
       {/* Disclaimer */}
       <p className="mt-10 rounded-lg border border-line bg-surface px-4 py-3 text-sm leading-relaxed text-muted">
-        <span className="font-semibold text-bronze">Simulation Demo</span> — this
-        match uses a legal example game to demonstrate the ChessSim experience.
-        The match narrative is authored content; evaluations, best moves and
-        move classifications are computed by the real Stockfish engine in your
-        browser. In later versions, real model-vs-model games will be simulated
-        here.
+        <span className="font-semibold text-bronze">{match.generation.label}</span>{" "}
+        — {match.generation.description} Stockfish analysis is computed in your
+        browser; authored story copy never overrides engine truth.
       </p>
 
       {/* More matches */}

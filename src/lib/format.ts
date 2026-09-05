@@ -6,7 +6,7 @@ export function formatDate(iso: string): string {
   });
 }
 
-/** "Jun 12, 2025" or, when years differ, "Jun 12, 2025" (kept for reuse). */
+/** Compact month/day date used in dense cards. */
 export function formatShortDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
     month: "short",
