@@ -15,6 +15,12 @@ import {
 import { AgentAvatar } from "./AgentAvatar";
 import { BoardReplay } from "./BoardReplay";
 import { ClassificationBadge } from "./Badge";
+import {
+  getChess960Position,
+  randomChess960Position,
+  STANDARD_START_FEN,
+  type ChessVariant,
+} from "@/lib/chess960";
 
 const Chessboard = dynamic(
   () => import("react-chessboard").then((m) => m.Chessboard),
@@ -25,8 +31,6 @@ const Chessboard = dynamic(
     ),
   }
 );
-
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 interface AgentsInfo {
   agents: SimAgent[];
@@ -39,7 +43,13 @@ const SPEEDS = [
   { id: "slow", label: "Slow", ms: 2600 },
 ];
 
-export function ArenaSim() {
+export function ArenaSim({
+  initialVariant = "standard",
+  initialChess960Position = 518,
+}: {
+  initialVariant?: ChessVariant;
+  initialChess960Position?: number;
+}) {
   const [info, setInfo] = useState<AgentsInfo | null>(null);
   const [whiteId, setWhiteId] = useState("stockfish-4");
   const [blackId, setBlackId] = useState("greedy");
@@ -48,6 +58,8 @@ export function ArenaSim() {
   const [orientation, setOrientation] = useState<"white" | "black">("white");
   const [replayMatch, setReplayMatch] = useState<Match | null>(null);
   const [copied, setCopied] = useState(false);
+  const [variant, setVariant] = useState<ChessVariant>(initialVariant);
+  const [positionNumber, setPositionNumber] = useState(initialChess960Position);
 
   useEffect(() => {
     fetch("/api/agents")
@@ -61,6 +73,11 @@ export function ArenaSim() {
   const white = useMemo(() => SIM_AGENTS.find((a) => a.id === whiteId) ?? SIM_AGENTS[0], [whiteId]);
   const black = useMemo(() => SIM_AGENTS.find((a) => a.id === blackId) ?? SIM_AGENTS[1], [blackId]);
   const speed = SPEEDS.find((s) => s.id === speedId) ?? SPEEDS[1];
+  const chess960Position = useMemo(
+    () => getChess960Position(positionNumber),
+    [positionNumber]
+  );
+  const startFen = variant === "chess960" ? chess960Position.fen : STANDARD_START_FEN;
 
   const configured = info?.configured ?? {};
 
@@ -74,6 +91,8 @@ export function ArenaSim() {
     moveDelayMs: speed.ms,
     configured,
     allowOfflineFallback: true,
+    variant,
+    startFen,
   });
 
   const { state } = sim;
@@ -92,13 +111,15 @@ export function ArenaSim() {
       white,
       black,
       moves: state.moves,
-      startFen: START_FEN,
+      startFen,
+      variant,
+      chess960Position: variant === "chess960" ? positionNumber : undefined,
       result: state.result,
       lang: "en",
     });
     setReplayMatch(match);
     setView("replay");
-  }, [state.result, state.moves, white, black]);
+  }, [state.result, state.moves, white, black, startFen, variant, positionNumber]);
 
   const exportPgn = useCallback(() => {
     if (!state.result) return;
@@ -133,6 +154,60 @@ export function ArenaSim() {
               Stockfish engine: {engineStatus === "ready" ? "ready ✓" : engineStatus === "loading" ? "loading…" : "idle"}
             </span>
           </div>
+
+          <div className="mt-6">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-faint">
+              Ruleset
+            </span>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setVariant("standard")}
+                className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                  variant === "standard"
+                    ? "border-ink bg-ink text-paper"
+                    : "border-line bg-surface text-ink hover:border-lineStrong"
+                }`}
+              >
+                <span className="block text-sm font-semibold">Standard Chess</span>
+                <span className={`mt-0.5 block text-xs ${variant === "standard" ? "text-[#D7CFBF]" : "text-muted"}`}>
+                  The familiar classical starting position.
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVariant("chess960")}
+                className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                  variant === "chess960"
+                    ? "border-bronze bg-bronze text-paper"
+                    : "border-line bg-surface text-ink hover:border-bronze"
+                }`}
+              >
+                <span className="block text-sm font-semibold">Chess960</span>
+                <span className={`mt-0.5 block text-xs ${variant === "chess960" ? "text-[#F3E9DB]" : "text-muted"}`}>
+                  Randomized back rank, complete castling rules.
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {variant === "chess960" && (
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-bronze/30 bg-bronze/5 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold">{chess960Position.label}</p>
+                <p className="mt-0.5 font-mono text-xs tracking-[0.18em] text-muted">
+                  {chess960Position.backRank}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPositionNumber(randomChess960Position().number)}
+                className="rounded-full border border-bronze/40 bg-surface px-4 py-1.5 text-xs font-semibold text-bronze transition-colors hover:bg-bronze hover:text-paper"
+              >
+                Shuffle position
+              </button>
+            </div>
+          )}
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <AgentPicker
@@ -255,6 +330,12 @@ export function ArenaSim() {
 
   return (
     <div>
+      <div className="mb-4 flex items-center gap-2 text-xs text-muted">
+        <span className="rounded-full border border-line bg-surface px-2.5 py-1 font-semibold text-ink">
+          {variant === "chess960" ? `Chess960 · #${String(positionNumber).padStart(3, "0")}` : "Standard Chess"}
+        </span>
+        <span>Live simulation</span>
+      </div>
       {/* offline banner during play */}
       {state.offlineAgents.length > 0 && state.phase !== "idle" && (
         <div className="mb-5 rounded-lg border border-[#F8E5D5] bg-[#FDF6EE] px-4 py-2.5 text-xs text-[#B0561F]">

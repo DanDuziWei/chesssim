@@ -20,15 +20,51 @@ export default function UpdatesPage() {
       </div>
 
       <div className="relative mt-12 border-l border-lineStrong pl-8 sm:pl-10">
-        {/* v0.4 */}
+        {/* v0.5 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
             01
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold">v0.4</h2>
+            <h2 className="font-display text-2xl font-semibold">v0.5</h2>
             <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
               Current release
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-faint">September 6, 2026</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            Chess960 breaks the fixed opening position while keeping the full
+            ChessSim experience. Generate any legal starting position, send it
+            to the Arena and watch agents solve unfamiliar chess live.
+          </p>
+          <ul className="mt-5 grid gap-x-10 gap-y-2.5 sm:grid-cols-2">
+            {[
+              "Dedicated Chess960 generator and explainer",
+              "All 960 standard numbered starting positions",
+              "Standard / Chess960 ruleset selector in Arena",
+              "Complete Chess960 castling legality",
+              "Stockfish UCI_Chess960 analysis mode",
+              "Chess960-aware LLM legal-move prompts",
+              "Variant-aware narrative replay",
+              "SetUp, Variant and FEN headers in PGN export",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
+                <span aria-hidden className="mt-0.5 text-bronze">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        {/* v0.4 */}
+        <article className="relative pb-14">
+          <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
+            02
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold">v0.4</h2>
+            <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
+              Narrative Experience 2.0
             </span>
           </div>
           <p className="mt-2 text-sm text-faint">September 2026</p>
@@ -59,7 +95,7 @@ export default function UpdatesPage() {
         {/* v0.3 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
-            02
+            03
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.3</h2>
@@ -101,7 +137,7 @@ export default function UpdatesPage() {
         {/* v0.2 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            03
+            04
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.2</h2>
@@ -145,7 +181,7 @@ export default function UpdatesPage() {
         {/* v0.1 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            04
+            05
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold text-muted">v0.1</h2>

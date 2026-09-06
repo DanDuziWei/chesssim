@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createEngineClient, type EngineAnalysis } from "@/lib/stockfish";
+import type { ChessVariant } from "@/lib/chess960";
 
 export type EngineStatus = "idle" | "loading" | "ready" | "error";
 
@@ -36,10 +37,14 @@ export function useStockfish() {
   }, []);
 
   const analyze = useCallback(
-    async (fen: string, depth = 14): Promise<EngineAnalysis | null> => {
+    async (
+      fen: string,
+      depth = 14,
+      variant: ChessVariant = "standard"
+    ): Promise<EngineAnalysis | null> => {
       try {
         const client = await ensure();
-        return await client.analyze(fen, { depth });
+        return await client.analyze(fen, { depth, chess960: variant === "chess960" });
       } catch (err) {
         console.error("Stockfish analysis failed:", err);
         setStatus("error");

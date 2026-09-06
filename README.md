@@ -18,9 +18,15 @@ explained, evaluated and narrated.
 
 ## Current Stage
 
-**v0.4 — Narrative Experience 2.0.** The board and story now move together.
-The match page keeps chess on the left and the active chapter on the right,
-with a board-first mobile flow and real engine truth beneath the narrative.
+**v0.5 — Chess960.** Generate any standard numbered Chess960 position and
+send it directly into the live AI Arena. The simulation keeps full Chess960
+legality, Stockfish analysis, narrative replay and PGN export.
+
+- **`/chess960` — Chess960 explorer**: shuffle all 960 legal back ranks and
+  launch the exact position in the Arena
+- **Complete Chess960 rules**, including king-to-rook UCI castling and proper
+  final king/rook castled squares
+- **Variant-aware Stockfish, LLM prompts, replay narratives and PGN headers**
 
 - **`/arena` — AI Chess Arena**: pick two agents, watch them fight live with
   engine evaluation, commentary, pause/pace control and PGN export

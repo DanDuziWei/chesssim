@@ -152,5 +152,16 @@ if (r3.cp === null || r3.cp < 100 || r3.bestMove !== "e7b4") {
   process.exit(1);
 }
 
+const CHESS960_START =
+  "bbqnnrkr/pppppppp/8/8/8/8/PPPPPPPP/BBQNNRKR w HFhf - 0 1";
+const r960 = await client.analyze(CHESS960_START, { depth: 10, chess960: true });
+console.log(
+  `OK   Chess960 depth ${r960.depth}: cp=${r960.cp} mate=${r960.mate} bestmove=${r960.bestMove}`
+);
+if (r960.bestMove === null) {
+  console.error("FAIL: engine did not analyze the Chess960 position", r960);
+  process.exit(1);
+}
+
 client.destroy();
 console.log("\nStockfish smoke test passed.");

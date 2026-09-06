@@ -106,6 +106,8 @@ export function toMatchSummary(m: Match): MatchSummary {
     theme: m.theme,
     simulationNumber: m.simulationNumber,
     status: m.status,
+    variant: m.variant,
+    chess960Position: m.chess960Position,
     result: m.result,
     resultLabel: m.resultLabel,
     whiteAgentId: m.whiteAgentId,

@@ -6,6 +6,7 @@ import type {
   Match,
   Move,
   NarrativeChapter,
+  ChessVariant,
 } from "@/lib/types";
 import type { SimAgent } from "./agents";
 import { defaultCommentary, defaultCommentaryZh } from "@/lib/build";
@@ -115,8 +116,19 @@ export function buildMatchFromLiveGame(params: {
   startFen: string;
   result: LiveGameResult;
   lang: Language;
+  variant?: ChessVariant;
+  chess960Position?: number;
 }): Match {
-  const { white, black, moves, startFen, result, lang } = params;
+  const {
+    white,
+    black,
+    moves,
+    startFen,
+    result,
+    lang,
+    variant = "standard",
+    chess960Position,
+  } = params;
   const whiteA = simAgentToAgent(white);
   const blackA = simAgentToAgent(black);
   const zh = lang === "zh";
@@ -164,8 +176,12 @@ export function buildMatchFromLiveGame(params: {
       id: "opening",
       title: "Opening",
       zhTitle: "开局",
-      text: `The game began ${firstSans}. ${white.name} and ${black.name} developed their forces and staked claims in the centre.`,
-      zhText: `对局以 ${firstSans} 开场。${white.name} 与 ${black.name} 各自展开子力，争夺中心。`,
+      text: variant === "chess960"
+        ? `Chess960 position #${chess960Position ?? "—"} began ${firstSans}. With familiar opening theory stripped away, ${white.name} and ${black.name} had to solve the position over the board.`
+        : `The game began ${firstSans}. ${white.name} and ${black.name} developed their forces and staked claims in the centre.`,
+      zhText: variant === "chess960"
+        ? `Chess960 第 ${chess960Position ?? "—"} 号局面以 ${firstSans} 开场。熟悉的开局理论被打散，${white.name} 与 ${black.name} 必须现场理解这个局面。`
+        : `对局以 ${firstSans} 开场。${white.name} 与 ${black.name} 各自展开子力，争夺中心。`,
     },
     {
       id: "battle",
@@ -253,7 +269,9 @@ export function buildMatchFromLiveGame(params: {
     zhTitle: bestForWinner ? `${winnerName ?? "胜者"}看到了 ${bestForWinner.san}` : "一盘棋逐渐成形",
     subtitle: summary,
     zhSubtitle: summaryZh,
-    opening: `${white.name} and ${black.name} begin from equal terms.`,
+    opening: variant === "chess960"
+      ? `${white.name} and ${black.name} begin from Chess960 position #${chess960Position ?? "—"}.`
+      : `${white.name} and ${black.name} begin from equal terms.`,
     chapters,
     moves: moveObjs,
     positions,
@@ -268,6 +286,8 @@ export function buildMatchFromLiveGame(params: {
     theme,
     simulationNumber: "Live Simulation",
     status: "completed",
+    variant,
+    ...(variant === "chess960" ? { chess960Position, initialFen: startFen } : {}),
     result: result.result,
     resultLabel:
       result.result === "1/2-1/2"
@@ -275,7 +295,7 @@ export function buildMatchFromLiveGame(params: {
         : `${result.winnerId === white.id ? white.name : black.name} wins`,
     whiteAgentId: white.id,
     blackAgentId: black.id,
-    opening: "Live simulation",
+    opening: variant === "chess960" ? `Chess960 #${chess960Position ?? "—"}` : "Live simulation",
     pgn: result.pgn,
     summary,
     summaryZh,

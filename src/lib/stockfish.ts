@@ -24,6 +24,8 @@ export interface EngineAnalysis {
 
 export interface AnalyzeOptions {
   depth?: number;
+  /** Enables Stockfish's Chess960 castling/UCI interpretation. */
+  chess960?: boolean;
   /** Hard time cap in ms (soft cap; Stockfish finishes the current iteration). */
   movetime?: number;
 }
@@ -229,6 +231,7 @@ export function createEngineClient(port: EnginePort) {
         lastInfo: { depth: 0, cp: null, mate: null },
         timeout,
       };
+      send(`setoption name UCI_Chess960 value ${opts.chess960 ? "true" : "false"}`);
       send(`position fen ${fen}`);
       if (opts.movetime) {
         send(`go movetime ${opts.movetime}`);

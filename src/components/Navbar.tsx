@@ -3,6 +3,7 @@ import Link from "next/link";
 const links = [
   { href: "/matches", label: "Matches" },
   { href: "/arena", label: "Arena" },
+  { href: "/chess960", label: "Chess960" },
   { href: "/about", label: "About" },
   { href: "/updates", label: "Updates" },
 ];
@@ -16,7 +17,7 @@ export function Navbar() {
             Chess<span className="text-bronze transition-colors group-hover:text-ink">Sim</span>
           </span>
           <span className="ml-2 hidden rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted sm:inline-block">
-            v0.4
+            v0.5
           </span>
         </Link>
 
@@ -26,7 +27,7 @@ export function Navbar() {
               key={l.href}
               href={l.href}
               className={`rounded-md px-2 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-line/60 hover:text-ink sm:px-3 ${
-                l.href === "/about" || l.href === "/updates" ? "hidden sm:inline-flex" : ""
+                l.href === "/about" || l.href === "/updates" ? "hidden lg:inline-flex" : ""
               }`}
             >
               {l.label}

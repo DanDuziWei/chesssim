@@ -1,4 +1,4 @@
-import type { Chess, Move } from "chess.js";
+import type { GameMove, SimulationGame } from "./game";
 
 /** Tiny local move heuristics used as offline fallback agents. */
 
@@ -11,7 +11,7 @@ const PIECE_VALUES: Record<string, number> = {
   k: 0,
 };
 
-function scoreMove(chess: Chess, mv: Move): number {
+function scoreMove(mv: GameMove): number {
   let score = 0;
   if (mv.captured) score += (PIECE_VALUES[mv.captured] ?? 100) * 10;
   if (mv.promotion) score += PIECE_VALUES[mv.promotion] ?? 100;
@@ -22,13 +22,13 @@ function scoreMove(chess: Chess, mv: Move): number {
 }
 
 /** Greedy: prefer captures / checks / promotions, with a little noise. */
-export function greedyMove(chess: Chess): Move | null {
-  const moves = chess.moves({ verbose: true }) as Move[];
+export function greedyMove(chess: SimulationGame): GameMove | null {
+  const moves = chess.legalMoves();
   if (moves.length === 0) return null;
-  let best: Move = moves[0];
+  let best: GameMove = moves[0];
   let bestScore = -Infinity;
   for (const mv of moves) {
-    const s = scoreMove(chess, mv);
+    const s = scoreMove(mv);
     if (s > bestScore) {
       bestScore = s;
       best = mv;
@@ -38,8 +38,8 @@ export function greedyMove(chess: Chess): Move | null {
 }
 
 /** Random legal move with a mild bias toward captures. */
-export function randomMove(chess: Chess): Move | null {
-  const moves = chess.moves({ verbose: true }) as Move[];
+export function randomMove(chess: SimulationGame): GameMove | null {
+  const moves = chess.legalMoves();
   if (moves.length === 0) return null;
   const captures = moves.filter((m) => m.captured);
   const pool = captures.length > 0 && Math.random() < 0.7 ? captures : moves;
