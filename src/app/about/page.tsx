@@ -39,7 +39,7 @@ const NOT_NOW = [
   "Real-time human vs human play",
   "Heavy community features",
   "Complex account systems",
-  "A complex database backend — v0.4 keeps curated match data local",
+  "A complex database backend — v0.5 keeps curated match data local",
 ];
 
 export default function AboutPage() {
@@ -86,14 +86,14 @@ export default function AboutPage() {
         <div>
           <p className="eyebrow">Current Stage</p>
           <h2 className="mt-2 font-display text-2xl font-semibold">
-            v0.4 — Narrative Experience 2.0
+            v0.5 — Chess960
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             The current version is deliberately focused: three clearly labelled
-            Demo Stories, a live Arena, real in-browser Stockfish and one
-            synchronized board-and-story experience. There is no account system
-            or database. The goal is simple: make the user want to see what
-            happens next.
+            Demo Stories, a live Arena, real in-browser Stockfish, complete
+            Chess960 rules and one synchronized board-and-story experience.
+            There is no account system or database. The goal is simple: make
+            the user want to see what happens next.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             Simple beats perfect. Demo beats architecture. A working prototype
@@ -148,6 +148,7 @@ export default function AboutPage() {
             "TypeScript",
             "Tailwind CSS",
             "chess.js",
+            "chessops",
             "react-chessboard",
             "Vercel-ready",
           ].map((t) => (

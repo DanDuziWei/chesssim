@@ -1,5 +1,7 @@
 export type Side = "w" | "b";
 
+export type ChessVariant = "standard" | "chess960";
+
 export type MatchStatus = "live" | "completed";
 
 export type MatchResult = "1-0" | "0-1" | "1/2-1/2" | "*";
@@ -157,6 +159,12 @@ export interface Match {
   /** e.g. "Simulation Match #001" */
   simulationNumber: string;
   status: MatchStatus;
+  /** Ruleset used for this game. Defaults to standard for older records. */
+  variant?: ChessVariant;
+  /** Standard Chess960 position number (0–959), when applicable. */
+  chess960Position?: number;
+  /** Explicit starting position, required for Chess960 replay/export. */
+  initialFen?: string;
   result: MatchResult;
   /** Human readable result, e.g. "1-0" or "White wins". */
   resultLabel: string;
@@ -186,6 +194,8 @@ export interface MatchSummary {
   theme: string;
   simulationNumber: string;
   status: MatchStatus;
+  variant?: ChessVariant;
+  chess960Position?: number;
   result: MatchResult;
   resultLabel: string;
   whiteAgentId: string;

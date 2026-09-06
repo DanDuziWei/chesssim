@@ -8,7 +8,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/arena" },
 };
 
-export default function ArenaPage() {
+export default async function ArenaPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ variant?: string; position?: string }>;
+}) {
+  const params = await searchParams;
+  const initialVariant = params.variant === "chess960" ? "chess960" : "standard";
+  const parsedPosition = Number(params.position);
+  const initialChess960Position = Number.isInteger(parsedPosition)
+    ? Math.min(959, Math.max(0, parsedPosition))
+    : 518;
+
   return (
     <div className="container-page py-10 sm:py-14">
       <div className="mb-8 max-w-2xl">
@@ -24,7 +35,10 @@ export default function ArenaPage() {
         </p>
       </div>
 
-      <ArenaSim />
+      <ArenaSim
+        initialVariant={initialVariant}
+        initialChess960Position={initialChess960Position}
+      />
 
       <div className="mt-14 grid gap-4 text-sm text-muted sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-lg border border-line bg-surface px-4 py-3">

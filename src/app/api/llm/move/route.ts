@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { Chess } from "chess.js";
 import { getSimAgent } from "@/lib/simulation/agents";
+import { SimulationGame } from "@/lib/simulation/game";
+import { isChessVariant, type ChessVariant } from "@/lib/chess960";
 import { chat, providerAvailable } from "@/lib/llm/providers";
 import {
   buildMoveSystemPrompt,
@@ -18,6 +19,7 @@ interface MoveRequestBody {
   fen: string;
   history: string[];
   opponentName: string;
+  variant?: ChessVariant;
 }
 
 /**
@@ -46,9 +48,10 @@ export async function POST(req: Request) {
     );
   }
 
-  let chess: Chess;
+  const variant = isChessVariant(body.variant) ? body.variant : "standard";
+  let chess: SimulationGame;
   try {
-    chess = new Chess(body.fen);
+    chess = new SimulationGame(variant, body.fen);
   } catch {
     return NextResponse.json({ error: "invalid-fen" }, { status: 400 });
   }
@@ -66,6 +69,7 @@ export async function POST(req: Request) {
     history: body.history ?? [],
     legalMoves: legalMoves,
     colorLabel,
+    variant,
   });
   let user = buildMoveUserPrompt({
     agentName: agent.name,
@@ -74,6 +78,7 @@ export async function POST(req: Request) {
     history: body.history ?? [],
     legalMoves: legalMoves,
     colorLabel,
+    variant,
   });
 
   const ATTEMPTS = 2;
@@ -89,7 +94,7 @@ export async function POST(req: Request) {
         const legal = resolveLegalMove(chess, parsed.move);
         if (legal) {
           return NextResponse.json({
-            move: `${legal.from}${legal.to}${legal.promotion ?? ""}`,
+            move: legal.uci,
             san: legal.san,
             comment: parsed.comment,
             fallback: false,
@@ -110,7 +115,7 @@ export async function POST(req: Request) {
   const fallback = legalMoves[Math.floor(Math.random() * legalMoves.length)];
   const legal = resolveLegalMove(chess, fallback);
   return NextResponse.json({
-    move: `${legal?.from}${legal?.to}${legal?.promotion ?? ""}`,
+    move: legal?.uci ?? fallback,
     san: legal?.san ?? fallback,
     comment: `${agent.name} failed to produce a legal move (${lastError}) and fell back to a random legal move.`,
     fallback: true,

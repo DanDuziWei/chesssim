@@ -1,6 +1,6 @@
 {
   "name": "chesssim",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "description": "AI-powered chess simulation & entertainment platform — Watch intelligence play.",
   "scripts": {
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "chess.js": "^1.4.0",
+    "chessops": "^0.15.1",
     "next": "^15.5.23",
     "react": "^19.0.0",
     "react-chessboard": "^4.7.2",

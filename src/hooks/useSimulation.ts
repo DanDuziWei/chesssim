@@ -1,6 +1,5 @@
 "use client";
 
-import { Chess } from "chess.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Classification } from "@/lib/types";
 import { classifyFromDelta, evalToProxyCp } from "@/lib/classify";
@@ -9,6 +8,11 @@ import type { EngineAnalysis } from "@/lib/stockfish";
 import type { SimAgent } from "@/lib/simulation/agents";
 import { greedyMove, randomMove } from "@/lib/simulation/heuristics";
 import type { LiveGameResult, LiveMove } from "@/lib/simulation/build-match";
+import { SimulationGame, type GameMove } from "@/lib/simulation/game";
+import {
+  STANDARD_START_FEN,
+  type ChessVariant,
+} from "@/lib/chess960";
 
 export type SimulationPhase = "idle" | "running" | "paused" | "finished" | "error";
 
@@ -22,13 +26,19 @@ export interface LlmMoveReply {
 export interface SimulationOptions {
   white: SimAgent;
   black: SimAgent;
-  analyze: (fen: string, depth: number) => Promise<EngineAnalysis | null>;
+  analyze: (
+    fen: string,
+    depth: number,
+    variant?: ChessVariant
+  ) => Promise<EngineAnalysis | null>;
   /** ms between moves (watchability pacing). */
   moveDelayMs: number;
   /** Which LLM agents are actually configured server-side. */
   configured: Record<string, boolean>;
   /** Allow unconfigured LLM agents to play with the offline heuristic. */
   allowOfflineFallback: boolean;
+  variant: ChessVariant;
+  startFen: string;
 }
 
 export interface SimulationState {
@@ -43,8 +53,8 @@ export interface SimulationState {
   offlineAgents: string[];
 }
 
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const ANALYSIS_DEPTH = 10;
+const MAX_PLIES = 240;
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
@@ -71,11 +81,20 @@ function templateComment(
 }
 
 export function useSimulation(opts: SimulationOptions) {
-  const { white, black, analyze, moveDelayMs, configured, allowOfflineFallback } = opts;
+  const {
+    white,
+    black,
+    analyze,
+    moveDelayMs,
+    configured,
+    allowOfflineFallback,
+    variant,
+    startFen,
+  } = opts;
 
   const [state, setState] = useState<SimulationState>({
     phase: "idle",
-    fen: START_FEN,
+    fen: startFen,
     moves: [],
     thinking: null,
     lastMove: null,
@@ -91,41 +110,30 @@ export function useSimulation(opts: SimulationOptions) {
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
-  const chessRef = useRef<Chess | null>(null);
-  if (chessRef.current === null) {
-    chessRef.current = new Chess();
-  }
-
   const pickMove = useCallback(
     async (
-      chess: Chess,
+      chess: SimulationGame,
       agent: SimAgent
-    ): Promise<{ from: string; to: string; promotion?: string; san: string; comment: string | null; fromLlm: boolean; fallback: boolean } | null> => {
+    ): Promise<(GameMove & { comment: string | null; fromLlm: boolean; fallback: boolean }) | null> => {
       if (agent.kind === "heuristic") {
         const mv =
           agent.heuristic === "greedy" ? greedyMove(chess) : randomMove(chess);
         return mv
-          ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: false }
+          ? { ...mv, comment: null, fromLlm: false, fallback: false }
           : null;
       }
 
       if (agent.kind === "engine") {
-        const r = await analyze(chess.fen(), agent.depth ?? 8);
+        const r = await analyze(chess.fen(), agent.depth ?? 8, chess.variant);
         if (r?.bestMove) {
-          try {
-            const mv = chess.move({
-              from: r.bestMove.slice(0, 2),
-              to: r.bestMove.slice(2, 4),
-              promotion: r.bestMove[4] as "q" | "r" | "n" | "b" | undefined,
-            });
-            return { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: false };
-          } catch {
-            /* fall through to heuristic */
-          }
+          const mv = chess.legalMoves().find(
+            (move) => move.uci.toLowerCase() === r.bestMove!.toLowerCase()
+          );
+          if (mv) return { ...mv, comment: null, fromLlm: false, fallback: false };
         }
         const mv = greedyMove(chess);
         return mv
-          ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: true }
+          ? { ...mv, comment: null, fromLlm: false, fallback: true }
           : null;
       }
 
@@ -134,7 +142,7 @@ export function useSimulation(opts: SimulationOptions) {
         if (!allowOfflineFallback) return null;
         const mv = greedyMove(chess);
         return mv
-          ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: true }
+          ? { ...mv, comment: null, fromLlm: false, fallback: true }
           : null;
       }
 
@@ -147,6 +155,7 @@ export function useSimulation(opts: SimulationOptions) {
             fen: chess.fen(),
             history: chess.history(),
             opponentName: agent === optsRef.current.white ? optsRef.current.black.name : optsRef.current.white.name,
+            variant: chess.variant,
           }),
         });
         if (!res.ok) {
@@ -154,31 +163,26 @@ export function useSimulation(opts: SimulationOptions) {
           if (data?.error === "no-key") {
             const mv = greedyMove(chess);
             return mv
-              ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: true }
+              ? { ...mv, comment: null, fromLlm: false, fallback: true }
               : null;
           }
           throw new Error(data?.message ?? `LLM move failed (${res.status})`);
         }
         const data: LlmMoveReply = await res.json();
-        try {
-          const mv = chess.move({
-            from: data.move.slice(0, 2),
-            to: data.move.slice(2, 4),
-            promotion: data.move[4] as "q" | "r" | "n" | "b" | undefined,
-          });
-          return { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: data.comment, fromLlm: true, fallback: data.fallback };
-        } catch {
-          const mv = greedyMove(chess);
-          return mv
-            ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: true }
-            : null;
-        }
+        const mv = chess.legalMoves().find(
+          (move) => move.uci.toLowerCase() === data.move.toLowerCase()
+        );
+        if (mv) return { ...mv, comment: data.comment, fromLlm: true, fallback: data.fallback };
+        const fallback = greedyMove(chess);
+        return fallback
+          ? { ...fallback, comment: null, fromLlm: false, fallback: true }
+          : null;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setState((s) => ({ ...s, error: msg }));
         const mv = greedyMove(chess);
         return mv
-          ? { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san, comment: null, fromLlm: false, fallback: true }
+          ? { ...mv, comment: null, fromLlm: false, fallback: true }
           : null;
       }
     },
@@ -191,8 +195,7 @@ export function useSimulation(opts: SimulationOptions) {
     pausedRef.current = false;
     runningRef.current = true;
 
-    const chess = new Chess();
-    chessRef.current = chess;
+    const chess = new SimulationGame(variant, startFen);
     const moves: LiveMove[] = [];
     const offline: string[] = [];
 
@@ -216,7 +219,7 @@ export function useSimulation(opts: SimulationOptions) {
       let prevCp = 0;
       let prevMate: number | null = null;
 
-      while (!cancelledRef.current && !chess.isGameOver()) {
+      while (!cancelledRef.current && !chess.isGameOver() && moves.length < MAX_PLIES) {
         while (pausedRef.current && !cancelledRef.current) {
           await sleep(150);
         }
@@ -231,18 +234,15 @@ export function useSimulation(opts: SimulationOptions) {
         const picked = await pickMove(chess, agent);
         if (!picked || cancelledRef.current) break;
 
-        const mv = chess.move({
-          from: picked.from,
-          to: picked.to,
-          promotion: picked.promotion,
-        });
+        const mv = chess.move(picked.uci);
+        if (!mv) throw new Error(`Rules engine rejected selected move ${picked.uci}`);
         const fen = chess.fen();
         const ply = moves.length + 1;
 
         /* real engine evaluation of the new position */
         let ev: EngineAnalysis | null = null;
         try {
-          ev = await analyze(fen, ANALYSIS_DEPTH);
+          ev = await analyze(fen, ANALYSIS_DEPTH, variant);
         } catch {
           ev = null;
         }
@@ -321,7 +321,7 @@ export function useSimulation(opts: SimulationOptions) {
         return;
       }
 
-      const result = deriveResult(chess, white, black);
+      const result = deriveResult(chess, white, black, moves.length >= MAX_PLIES);
       runningRef.current = false;
       setState((s) => ({ ...s, phase: "finished", result, thinking: null }));
     })().catch((err) => {
@@ -333,7 +333,7 @@ export function useSimulation(opts: SimulationOptions) {
         thinking: null,
       }));
     });
-  }, [white, black, configured, allowOfflineFallback, moveDelayMs, pickMove, analyze]);
+  }, [white, black, configured, allowOfflineFallback, moveDelayMs, pickMove, analyze, variant, startFen]);
 
   const pause = useCallback(() => {
     pausedRef.current = true;
@@ -361,9 +361,10 @@ export function useSimulation(opts: SimulationOptions) {
 }
 
 function deriveResult(
-  chess: Chess,
+  chess: SimulationGame,
   white: SimAgent,
-  black: SimAgent
+  black: SimAgent,
+  reachedMoveLimit = false
 ): LiveGameResult {
   let result: LiveGameResult;
   if (chess.isCheckmate()) {
@@ -372,7 +373,7 @@ function deriveResult(
       result: winnerIsWhite ? "1-0" : "0-1",
       winnerId: winnerIsWhite ? white.id : black.id,
       reason: "Checkmate",
-      pgn: chess.pgn(),
+      pgn: chess.pgn(winnerIsWhite ? "1-0" : "0-1"),
     };
   } else if (chess.isStalemate()) {
     result = { result: "1/2-1/2", winnerId: null, reason: "Stalemate", pgn: chess.pgn() };
@@ -380,6 +381,8 @@ function deriveResult(
     result = { result: "1/2-1/2", winnerId: null, reason: "Threefold repetition", pgn: chess.pgn() };
   } else if (chess.isInsufficientMaterial()) {
     result = { result: "1/2-1/2", winnerId: null, reason: "Insufficient material", pgn: chess.pgn() };
+  } else if (reachedMoveLimit) {
+    result = { result: "1/2-1/2", winnerId: null, reason: "Simulation move limit", pgn: chess.pgn() };
   } else if (chess.isDraw()) {
     result = { result: "1/2-1/2", winnerId: null, reason: "Draw (50-move rule)", pgn: chess.pgn() };
   } else {

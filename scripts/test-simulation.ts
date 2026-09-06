@@ -5,8 +5,9 @@
  *   - provider adapter request/response shape (mocked fetch)
  *   - buildMatchFromLiveGame produces a replayable Match
  */
-import { Chess } from "chess.js";
 import { greedyMove, randomMove } from "../src/lib/simulation/heuristics";
+import { SimulationGame } from "../src/lib/simulation/game";
+import { getChess960Position } from "../src/lib/chess960";
 import { parseMoveResponse, parseNarrative, resolveLegalMove, buildMoveSystemPrompt, buildMoveUserPrompt, legalMovesAsUci } from "../src/lib/llm/prompt";
 import { getProviderSpec } from "../src/lib/llm/providers";
 import { buildMatchFromLiveGame, type LiveMove } from "../src/lib/simulation/build-match";
@@ -21,12 +22,12 @@ function check(name: string, ok: boolean, extra?: unknown) {
 async function main() {
 /* 1. heuristic bots play a full game */
 {
-  const chess = new Chess();
+  const chess = new SimulationGame();
   let plies = 0;
   while (!chess.isGameOver() && plies < 400) {
     const mv = chess.turn() === "w" ? greedyMove(chess) : randomMove(chess);
     if (!mv) break;
-    chess.move({ from: mv.from, to: mv.to, promotion: mv.promotion });
+    chess.move(mv.uci);
     plies++;
   }
   check("greedy vs random completes", chess.isGameOver(), { plies, pgn: chess.pgn().slice(0, 60) });
@@ -47,15 +48,15 @@ async function main() {
   const r4 = parseMoveResponse("I think e4 is good");
   check("parse garbage → null move", r4.move === null, r4);
 
-  const chess = new Chess();
+  const chess = new SimulationGame();
   const legal = resolveLegalMove(chess, "e2e4");
   check("resolveLegalMove UCI", legal?.san === "e4", legal);
-  const illegal = resolveLegalMove(new Chess(), "e2e5");
+  const illegal = resolveLegalMove(new SimulationGame(), "e2e5");
   check("resolveLegalMove rejects illegal", illegal === null);
-  const sanMove = resolveLegalMove(new Chess(), "Nf3");
+  const sanMove = resolveLegalMove(new SimulationGame(), "Nf3");
   check("resolveLegalMove SAN", sanMove?.from === "g1" && sanMove?.to === "f3", sanMove);
 
-  const fresh = new Chess();
+  const fresh = new SimulationGame();
   const sys = buildMoveSystemPrompt({
     agentName: "DeepSeek", opponentName: "GPT", fen: fresh.fen(), history: [], legalMoves: legalMovesAsUci(fresh), colorLabel: "White",
   });
@@ -109,15 +110,15 @@ async function main() {
 {
   const white = getSimAgent("stockfish-4")!;
   const black = getSimAgent("greedy")!;
-  const chess = new Chess();
+  const chess = new SimulationGame();
   const moves: LiveMove[] = [];
   for (let i = 0; i < 20 && !chess.isGameOver(); i++) {
     const mv = i % 2 === 0 ? greedyMove(chess)! : randomMove(chess)!;
-    chess.move({ from: mv.from, to: mv.to, promotion: mv.promotion });
+    chess.move(mv.uci);
     moves.push({
       ply: i + 1,
       moveNumber: Math.ceil((i + 1) / 2),
-      color: mv.color as "w" | "b",
+      color: mv.color,
       san: mv.san,
       from: mv.from,
       to: mv.to,
@@ -157,6 +158,39 @@ async function main() {
   check("live match has zh + en summary", match.summary.length > 0 && match.summaryZh.length > 0);
   check("live match move count", match.moveCount === moves.length);
   check("agent registry has 9 agents", SIM_AGENTS.length === 9, SIM_AGENTS.map((a) => a.id));
+}
+
+/* 6. Chess960 generation and castling rules */
+{
+  const positions = Array.from({ length: 960 }, (_, number) => getChess960Position(number));
+  check("Chess960 generator creates 960 unique ranks", new Set(positions.map((p) => p.backRank)).size === 960);
+  check("Chess960 #518 is classical", positions[518].backRank === "RNBQKBNR", positions[518]);
+  check(
+    "all 960 generated FENs load with legal opening moves",
+    positions.every((position) => {
+      const count = new SimulationGame("chess960", position.fen).legalMoves().length;
+      // Knight mobility varies by file; a few layouts can also castle immediately.
+      return count >= 18 && count <= 21;
+    })
+  );
+  check(
+    "every Chess960 rank has opposite bishops and king between rooks",
+    positions.every(({ backRank }) => {
+      const bishops = [...backRank].flatMap((piece, file) => (piece === "B" ? [file] : []));
+      const rooks = [...backRank].flatMap((piece, file) => (piece === "R" ? [file] : []));
+      const king = backRank.indexOf("K");
+      return bishops.length === 2 && bishops[0] % 2 !== bishops[1] % 2 && rooks[0] < king && king < rooks[1];
+    })
+  );
+
+  const castling = new SimulationGame(
+    "chess960",
+    "4k3/8/8/8/8/8/8/RK5R w HA - 0 1"
+  );
+  const castleMove = castling.legalMoves().find((move) => move.san === "O-O");
+  check("Chess960 exposes king-to-rook UCI castling", castleMove?.uci === "b1h1", castleMove);
+  check("Chess960 castling plays legally", !!castling.move("b1h1"));
+  check("Chess960 castling lands king and rook correctly", castling.fen().startsWith("4k3/8/8/8/8/8/8/R4RK1 b"), castling.fen());
 }
 
 if (failures > 0) {

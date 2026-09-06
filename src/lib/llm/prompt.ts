@@ -1,4 +1,5 @@
-import type { Chess } from "chess.js";
+import type { GameMove, SimulationGame } from "@/lib/simulation/game";
+import type { ChessVariant } from "@/lib/chess960";
 
 /**
  * Prompt construction and response parsing for the LLM chess agents.
@@ -12,6 +13,7 @@ export interface MovePromptInput {
   history: string[];
   legalMoves: string[];
   colorLabel: "White" | "Black";
+  variant?: ChessVariant;
 }
 
 export function buildMoveSystemPrompt(input: MovePromptInput): string {
@@ -19,6 +21,11 @@ export function buildMoveSystemPrompt(input: MovePromptInput): string {
     "You are an AI chess agent competing in the ChessSim arena.",
     `You play as ${input.agentName} (${input.colorLabel}) against ${input.opponentName}.`,
     "You are a strong, creative chess player. Explain your thinking like a chess commentator: strategic, human, and concise — not a list of engine numbers.",
+    ...(input.variant === "chess960"
+      ? [
+          "This game uses Chess960. For castling, copy the exact UCI move from the legal-moves list; it uses king-to-rook notation.",
+        ]
+      : []),
     "",
     "Respond with exactly two lines, nothing else:",
     "MOVE: <your move in UCI notation, e.g. e2e4, g1f3, e7e8q>",
@@ -32,6 +39,7 @@ export function buildMoveUserPrompt(input: MovePromptInput): string {
     input.fen,
     "",
     `Move history: ${input.history.length > 0 ? input.history.slice(-20).join(" ") : "(opening move)"}`,
+    `Ruleset: ${input.variant === "chess960" ? "Chess960" : "Standard chess"}`,
     "",
     `Legal moves (UCI): ${input.legalMoves.join(", ")}`,
     "",
@@ -128,36 +136,15 @@ export function parseNarrative(text: string): ParsedNarrative {
   return { story, reasoning };
 }
 
-/** Convert a UCI/SAN move reply into a legal chess.js move, or null. */
+/** Convert a UCI/SAN move reply into a legal move for the selected ruleset. */
 export function resolveLegalMove(
-  chess: Chess,
+  chess: SimulationGame,
   raw: string
-): { from: string; to: string; promotion?: string; san: string } | null {
-  const uci = raw.toLowerCase().trim();
-  // UCI form: e2e4 / e7e8q
-  const uciMatch = uci.match(/^([a-h][1-8])([a-h][1-8])([qrbn])?$/);
-  if (uciMatch) {
-    try {
-      const mv = chess.move({
-        from: uciMatch[1],
-        to: uciMatch[2],
-        promotion: uciMatch[3],
-      });
-      return { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san };
-    } catch {
-      return null;
-    }
-  }
-  // SAN form: Nf3 / exd5 / O-O (keep the original casing)
-  try {
-    const mv = chess.move(raw.trim());
-    return { from: mv.from, to: mv.to, promotion: mv.promotion, san: mv.san };
-  } catch {
-    return null;
-  }
+): GameMove | null {
+  return chess.move(raw);
 }
 
 /** Legal moves in UCI notation (from+to+promotion), as sent to the LLM. */
-export function legalMovesAsUci(chess: Chess): string[] {
-  return chess.moves({ verbose: true }).map((m) => m.from + m.to + (m.promotion ?? ""));
+export function legalMovesAsUci(chess: SimulationGame): string[] {
+  return chess.legalMoves().map((move) => move.uci);
 }

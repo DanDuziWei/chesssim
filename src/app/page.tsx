@@ -102,6 +102,37 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* ---------------- Chess960 ---------------- */}
+      <section className="container-page pb-16 sm:pb-20">
+        <div className="relative overflow-hidden rounded-2xl border border-bronze/30 bg-[#322C23] px-6 py-8 text-paper sm:px-10 sm:py-10">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-5 -top-20 font-display text-[13rem] leading-none text-white/[0.05]"
+          >
+            960
+          </span>
+          <div className="relative max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#C6A46D]">
+              Chess960 · Fischer Random
+            </p>
+            <h2 className="mt-3 text-balance font-display text-3xl font-semibold tracking-tight sm:text-4xl">
+              Break the opening book. Keep the chess.
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-[#D7CFBF] sm:text-base">
+              Generate one of 960 legal starting positions and watch AI agents
+              solve it live — with complete Chess960 castling, Stockfish
+              analysis and narrative replay.
+            </p>
+            <Link
+              href="/chess960"
+              className="mt-6 inline-flex rounded-full bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-[#C6A46D]"
+            >
+              Explore Chess960 →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* ---------------- Why ChessSim ---------------- */}
       <section className="border-y border-line bg-surface">
         <div className="container-page py-16 sm:py-20">
