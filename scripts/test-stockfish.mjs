@@ -106,7 +106,38 @@ if (bResult.bestMove !== null || cResult.bestMove !== "a2a3" || cResult.cp !== 2
 raceClient.destroy();
 console.log("OK   rapid navigation keeps only the newest engine search");
 
-// 3. engine handshake + real analysis
+// 3. a non-responsive worker must settle instead of hanging forever
+const timeoutPort = { onmessage: null, commands: [], terminated: false };
+timeoutPort.postMessage = (command) => timeoutPort.commands.push(command);
+timeoutPort.terminate = () => {
+  timeoutPort.terminated = true;
+};
+const timeoutClient = createEngineClient(timeoutPort);
+const timeoutStarted = Date.now();
+let timeoutError = null;
+try {
+  await timeoutClient.analyze(FEN_A, { movetime: 1 });
+} catch (error) {
+  timeoutError = error;
+}
+if (
+  !(timeoutError instanceof Error) ||
+  timeoutError.message !== "Stockfish analysis timeout" ||
+  !timeoutPort.commands.includes("stop") ||
+  !timeoutPort.terminated ||
+  Date.now() - timeoutStarted > 1800
+) {
+  console.error("FAIL: hard analysis timeout", {
+    timeoutError,
+    commands: timeoutPort.commands,
+    terminated: timeoutPort.terminated,
+    elapsed: Date.now() - timeoutStarted,
+  });
+  process.exit(1);
+}
+console.log("OK   non-responsive search terminates within the hard timeout");
+
+// 4. engine handshake + real analysis
 // The engine posts raw strings via global postMessage; forward them into the
 // client through a Worker-like `port` object.
 const port = { postMessage: null, onmessage: null };

@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 interface NarrateRequestBody {
   agentId: string;
+  playerId: string;
   fen: string;
   moveSan: string;
   evalCp: number | null;
@@ -38,6 +39,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "unknown-agent" }, { status: 404 });
   }
 
+  const player = getSimAgent(body.playerId);
+  if (!player) {
+    return NextResponse.json({ error: "unknown-player" }, { status: 404 });
+  }
+
   if (!providerAvailable(agent.provider)) {
     return NextResponse.json(
       { error: "no-key", message: `${agent.name} is not configured on the server.` },
@@ -51,7 +57,7 @@ export async function POST(req: Request) {
       agent.model,
       buildNarrateSystemPrompt(),
       buildNarrateUserPrompt({
-        agentName: agent.name,
+        agentName: player.name,
         fen: body.fen,
         moveSan: body.moveSan,
         evalCp: body.evalCp,

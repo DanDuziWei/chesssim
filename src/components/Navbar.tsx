@@ -17,7 +17,7 @@ export function Navbar() {
             Chess<span className="text-bronze transition-colors group-hover:text-ink">Sim</span>
           </span>
           <span className="ml-2 hidden rounded-full border border-line bg-surface px-2 py-0.5 text-[10px] font-medium uppercase tracking-widest text-muted sm:inline-block">
-            v0.5
+            v0.5.1
           </span>
         </Link>
 

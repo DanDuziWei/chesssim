@@ -47,7 +47,13 @@ export function useStockfish() {
         return await client.analyze(fen, { depth, chess960: variant === "chess960" });
       } catch (err) {
         console.error("Stockfish analysis failed:", err);
-        setStatus("error");
+        // A timed-out worker is discarded so the next move can start a fresh
+        // engine instead of inheriting a stale `bestmove` response.
+        clientRef.current?.destroy();
+        clientRef.current = null;
+        workerRef.current?.terminate();
+        workerRef.current = null;
+        setStatus("idle");
         return null;
       }
     },

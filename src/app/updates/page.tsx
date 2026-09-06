@@ -20,15 +20,51 @@ export default function UpdatesPage() {
       </div>
 
       <div className="relative mt-12 border-l border-lineStrong pl-8 sm:pl-10">
-        {/* v0.5 */}
+        {/* v0.5.1 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
             01
           </span>
           <div className="flex flex-wrap items-center gap-3">
-            <h2 className="font-display text-2xl font-semibold">v0.5</h2>
+            <h2 className="font-display text-2xl font-semibold">v0.5.1</h2>
             <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
               Current release
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-faint">September 6, 2026</p>
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            Live games now finish reliably, tell their story while the pieces
+            are still moving and can persist as permanent replays when the
+            optional database connection is enabled.
+          </p>
+          <ul className="mt-5 grid gap-x-10 gap-y-2.5 sm:grid-cols-2">
+            {[
+              "Immediate checkmate and terminal-state completion",
+              "Hard timeout and automatic Stockfish worker recovery",
+              "Instant story beat for every move",
+              "Opt-in, non-blocking LLM refinement for important moments",
+              "Rate-limited server-side match persistence API",
+              "Permanent saved replay route",
+              "RLS-enabled Supabase migration",
+              "No database secret shipped to the browser",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-2.5 text-sm text-ink">
+                <span aria-hidden className="mt-0.5 text-bronze">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        {/* v0.5 */}
+        <article className="relative pb-14">
+          <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
+            02
+          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold">v0.5</h2>
+            <span className="rounded-full bg-[#E4F2E9] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-[#2F7D4F]">
+              Chess960
             </span>
           </div>
           <p className="mt-2 text-sm text-faint">September 6, 2026</p>
@@ -59,7 +95,7 @@ export default function UpdatesPage() {
         {/* v0.4 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
-            02
+            03
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.4</h2>
@@ -95,7 +131,7 @@ export default function UpdatesPage() {
         {/* v0.3 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-bronze bg-bronze text-[10px] font-semibold text-paper sm:-left-[49px]">
-            03
+            04
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.3</h2>
@@ -137,7 +173,7 @@ export default function UpdatesPage() {
         {/* v0.2 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            04
+            05
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold">v0.2</h2>
@@ -181,7 +217,7 @@ export default function UpdatesPage() {
         {/* v0.1 */}
         <article className="relative pb-14">
           <span className="absolute -left-[41px] top-0 flex h-[26px] w-[26px] items-center justify-center rounded-full border border-lineStrong bg-surface text-[10px] font-semibold text-muted sm:-left-[49px]">
-            05
+            06
           </span>
           <div className="flex flex-wrap items-center gap-3">
             <h2 className="font-display text-2xl font-semibold text-muted">v0.1</h2>

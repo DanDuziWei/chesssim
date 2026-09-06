@@ -26,7 +26,7 @@ export interface AnalyzeOptions {
   depth?: number;
   /** Enables Stockfish's Chess960 castling/UCI interpretation. */
   chess960?: boolean;
-  /** Hard time cap in ms (soft cap; Stockfish finishes the current iteration). */
+  /** Search time cap in ms. A short grace period is allowed after `stop`. */
   movetime?: number;
 }
 
@@ -64,6 +64,7 @@ export function parseInfoLine(line: string): { depth: number; cp: number | null;
 }
 
 const READY_TIMEOUT_MS = 15000;
+const STOP_GRACE_MS = 400;
 
 export function createEngineClient(port: EnginePort) {
   let uciOkResolve: (() => void) | null = null;
@@ -75,6 +76,7 @@ export function createEngineClient(port: EnginePort) {
     reject: (e: Error) => void;
     lastInfo: { depth: number; cp: number | null; mate: number | null };
     timeout: ReturnType<typeof setTimeout>;
+    hardTimeout: ReturnType<typeof setTimeout> | null;
   } | null = null;
 
   /** Set when a search was interrupted: the next `bestmove` is stale and ignored. */
@@ -113,6 +115,7 @@ export function createEngineClient(port: EnginePort) {
       if (!a) return;
       currentAnalyze = null;
       clearTimeout(a.timeout);
+      if (a.hardTimeout) clearTimeout(a.hardTimeout);
       const best = line.split(" ")[1];
       const whiteScore = toWhitePerspective(a.fen, a.lastInfo);
       a.resolve({
@@ -189,6 +192,7 @@ export function createEngineClient(port: EnginePort) {
     const a = currentAnalyze;
     currentAnalyze = null;
     clearTimeout(a.timeout);
+    if (a.hardTimeout) clearTimeout(a.hardTimeout);
     ignoreNextBestmove = true;
     drainPromise = new Promise<void>((resolve) => {
       drainResolve = resolve;
@@ -215,22 +219,31 @@ export function createEngineClient(port: EnginePort) {
     const depth = opts.depth ?? 14;
 
     return new Promise<EngineAnalysis>((resolve, reject) => {
+      let analysis: NonNullable<typeof currentAnalyze>;
       const timeout = setTimeout(() => {
-        // Soft cap: ask for bestmove now; Stockfish returns the current iteration.
-        if (currentAnalyze) {
-          send("stop");
-        } else {
-          resolve(emptyAnalysis(fen));
-        }
+        if (currentAnalyze !== analysis) return;
+
+        // Ask Stockfish for its current best move, but never wait forever. Some
+        // builds do not emit `bestmove` for terminal/malformed searches.
+        send("stop");
+        analysis.hardTimeout = setTimeout(() => {
+          if (currentAnalyze !== analysis) return;
+          currentAnalyze = null;
+          destroyed = true;
+          port.terminate?.();
+          reject(new Error("Stockfish analysis timeout"));
+        }, STOP_GRACE_MS);
       }, Math.max(800, opts.movetime ?? 8000));
 
-      currentAnalyze = {
+      analysis = {
         fen,
         resolve,
         reject,
         lastInfo: { depth: 0, cp: null, mate: null },
         timeout,
+        hardTimeout: null,
       };
+      currentAnalyze = analysis;
       send(`setoption name UCI_Chess960 value ${opts.chess960 ? "true" : "false"}`);
       send(`position fen ${fen}`);
       if (opts.movetime) {
@@ -251,6 +264,7 @@ export function createEngineClient(port: EnginePort) {
   }
 
   function destroy() {
+    if (destroyed) return;
     stop();
     destroyed = true;
     port.terminate?.();

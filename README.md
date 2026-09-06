@@ -18,9 +18,9 @@ explained, evaluated and narrated.
 
 ## Current Stage
 
-**v0.5 — Chess960.** Generate any standard numbered Chess960 position and
-send it directly into the live AI Arena. The simulation keeps full Chess960
-legality, Stockfish analysis, narrative replay and PGN export.
+**v0.5.1 — Reliable live stories.** Generate any numbered Chess960 position,
+watch the story update while the agents play and finish cleanly at checkmate.
+Completed games can be saved as permanent replays when Supabase is configured.
 
 - **`/chess960` — Chess960 explorer**: shuffle all 960 legal back ranks and
   launch the exact position in the Arena
@@ -36,6 +36,12 @@ legality, Stockfish analysis, narrative replay and PGN export.
 - **Stockfish agents** at configurable depth + greedy / random baseline bots
 - Finished games become **full replays** (Story Mode, bilingual narrative,
   engine analysis) built on the fly
+- Every move creates an immediate live story beat; users can explicitly opt in
+  to asynchronous LLM refinement for important moments without pausing the game
+- Terminal positions skip unnecessary engine analysis, and a hard timeout
+  automatically recovers a non-responsive Stockfish worker
+- Optional server-side Supabase persistence stores a complete, permanent match
+  replay; database secrets are never sent to the browser
 - Three curated **Demo Story** matches:
   `/match/deepseek-vs-gpt` (#001), `/match/claude-vs-qwen` (#002),
   `/match/deepseek-vs-claude` (#003)
@@ -47,8 +53,8 @@ legality, Stockfish analysis, narrative replay and PGN export.
 - Explicit **Demo Story / Verified AI Match / Live Fallback** provenance
 - White-perspective Stockfish scores and correct before-move best-move comparison
 
-No database. No accounts. LLM commentary requires provider API keys
-(see below); everything else runs with zero configuration.
+No accounts. Database persistence and LLM refinement are optional; the Arena,
+Stockfish, live template story and local replay all run with zero configuration.
 
 ## Product Loop
 
@@ -114,6 +120,20 @@ DASHSCOPE_API_KEY=sk-...    # Alibaba    → qwen-max
 Agents without a configured key are clearly labelled in the Arena and fall
 back to the local heuristic — the platform never fakes an LLM move.
 
+## Match database (optional)
+
+Apply `supabase/migrations/202609060001_create_chesssim_matches.sql`, then add
+these server-only environment variables locally or in Vercel:
+
+```bash
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_...
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` remains supported as a legacy fallback. Never use
+either secret in a `NEXT_PUBLIC_` variable. Without these values, completed
+games still work as local replays and the UI states that persistence is pending.
+
 ## Project Structure
 
 ```
@@ -123,11 +143,13 @@ src/
 │   ├── matches/page.tsx    # /matches
 │   ├── arena/page.tsx      # /arena  live simulation
 │   ├── match/[slug]/page.tsx  # /match/<slug>  replay
+│   ├── saved/[shareId]/page.tsx # /saved/<id> persisted replay
 │   ├── about/page.tsx      # /about
 │   ├── updates/page.tsx    # /updates
 │   ├── api/agents/route.ts # agent registry + key status
 │   ├── api/llm/move/route.ts      # LLM move selection (server proxy)
 │   ├── api/llm/narrate/route.ts   # LLM narrative generation
+│   ├── api/matches/route.ts       # validated match persistence
 │   ├── layout.tsx          # root layout (nav + footer)
 │   └── globals.css         # Tailwind + design tokens
 ├── components/             # UI components

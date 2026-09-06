@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Match } from "@/lib/types";
 import { formatEval } from "@/lib/eval";
 import { CLASSIFICATION_META } from "@/lib/classify";
@@ -60,6 +60,12 @@ export function ArenaSim({
   const [copied, setCopied] = useState(false);
   const [variant, setVariant] = useState<ChessVariant>(initialVariant);
   const [positionNumber, setPositionNumber] = useState(initialChess960Position);
+  const [enhanceNarrative, setEnhanceNarrative] = useState(false);
+  const [saveState, setSaveState] = useState<
+    | { status: "idle" | "saving" | "local" | "failed" }
+    | { status: "saved"; url: string }
+  >({ status: "idle" });
+  const persistedPgnRef = useRef<string | null>(null);
 
   useEffect(() => {
     fetch("/api/agents")
@@ -83,6 +89,9 @@ export function ArenaSim({
 
   const offlineWhite = white.kind === "llm" && !configured[white.id];
   const offlineBlack = black.kind === "llm" && !configured[black.id];
+  const narratorAvailable = SIM_AGENTS.some(
+    (agent) => agent.kind === "llm" && configured[agent.id]
+  );
 
   const sim = useSimulation({
     white,
@@ -91,6 +100,7 @@ export function ArenaSim({
     moveDelayMs: speed.ms,
     configured,
     allowOfflineFallback: true,
+    enhanceNarrative,
     variant,
     startFen,
   });
@@ -100,12 +110,14 @@ export function ArenaSim({
   const startGame = useCallback(() => {
     setView("live");
     setReplayMatch(null);
+    setSaveState({ status: "idle" });
+    persistedPgnRef.current = null;
     sim.start();
   }, [sim]);
 
-  const showReplay = useCallback(() => {
-    if (!state.result || state.moves.length === 0) return;
-    const match = buildMatchFromLiveGame({
+  const buildCurrentMatch = useCallback(() => {
+    if (!state.result || state.moves.length === 0) return null;
+    return buildMatchFromLiveGame({
       slug: `live-${Date.now()}`,
       title: `${white.name} vs ${black.name}`,
       white,
@@ -117,9 +129,44 @@ export function ArenaSim({
       result: state.result,
       lang: "en",
     });
+  }, [state.result, state.moves, white, black, startFen, variant, positionNumber]);
+
+  useEffect(() => {
+    if (state.phase !== "finished" || !state.result || persistedPgnRef.current === state.result.pgn) {
+      return;
+    }
+    const match = buildCurrentMatch();
+    if (!match) return;
+    persistedPgnRef.current = state.result.pgn;
+    setReplayMatch(match);
+    setSaveState({ status: "saving" });
+
+    void fetch("/api/matches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ match }),
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          persisted?: boolean;
+          url?: string;
+        };
+        if (!response.ok) throw new Error("save-failed");
+        setSaveState(
+          data.persisted && data.url
+            ? { status: "saved", url: data.url }
+            : { status: "local" }
+        );
+      })
+      .catch(() => setSaveState({ status: "failed" }));
+  }, [state.phase, state.result, buildCurrentMatch]);
+
+  const showReplay = useCallback(() => {
+    const match = replayMatch ?? buildCurrentMatch();
+    if (!match) return;
     setReplayMatch(match);
     setView("replay");
-  }, [state.result, state.moves, white, black, startFen, variant, positionNumber]);
+  }, [replayMatch, buildCurrentMatch]);
 
   const exportPgn = useCallback(() => {
     if (!state.result) return;
@@ -232,6 +279,30 @@ export function ArenaSim({
               代替走子。在 Vercel 环境变量里配置对应 key 后即恢复真实 LLM 对战。
             </div>
           )}
+
+          <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-paper px-4 py-3">
+            <input
+              type="checkbox"
+              checked={enhanceNarrative}
+              onChange={(event) => setEnhanceNarrative(event.target.checked)}
+              disabled={!narratorAvailable}
+              className="mt-0.5 h-4 w-4 accent-[#8A6A3B] disabled:opacity-40"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-ink">
+                AI-refine important story beats
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-muted">
+                Optional and off by default. Uses a configured LLM API and may consume credits;
+                the instant live story works without it.
+              </span>
+              {!narratorAvailable && (
+                <span className="mt-1 block text-[11px] text-faint">
+                  Configure an LLM provider key to enable this option.
+                </span>
+              )}
+            </span>
+          </label>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -485,6 +556,12 @@ export function ArenaSim({
               <p className="mt-0.5 text-sm text-muted">
                 {state.result!.reason} · {state.moves.length} plies
               </p>
+              <p className="mt-2 text-xs text-muted">
+                {saveState.status === "saving" && "Saving replay…"}
+                {saveState.status === "saved" && "Replay saved to the database ✓"}
+                {saveState.status === "local" && "Replay ready locally · database connection pending"}
+                {saveState.status === "failed" && "Replay ready locally · database save failed"}
+              </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   onClick={showReplay}
@@ -504,6 +581,42 @@ export function ArenaSim({
                 >
                   {copied ? "Copied ✓" : "Copy PGN"}
                 </button>
+                {saveState.status === "saved" && (
+                  <a
+                    href={saveState.url}
+                    className="rounded-full border border-bronze/50 bg-surface px-4 py-1.5 text-xs font-semibold text-bronze transition-colors hover:bg-bronze hover:text-paper"
+                  >
+                    Open saved match
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {state.storyBeats.length > 0 && (
+            <div className="mt-5 border-t border-line pt-4">
+              <div className="flex items-baseline justify-between gap-3">
+                <p className="eyebrow">Live Story</p>
+                <p className="text-[10px] text-faint">updates during play</p>
+              </div>
+              <div className="chesssim-scroll mt-3 max-h-72 space-y-3 overflow-y-auto pr-1">
+                {state.storyBeats.slice(-6).map((beat) => (
+                  <article key={beat.id} className="rounded-lg border border-line bg-paper p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-semibold text-ink">
+                        {beat.title} · ply {beat.ply}
+                      </p>
+                      <span className="shrink-0 text-[9px] uppercase tracking-wider text-faint">
+                        {beat.status === "enhancing"
+                          ? "AI refining…"
+                          : beat.status === "enhanced"
+                            ? "AI story"
+                            : "instant"}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted">{beat.story}</p>
+                  </article>
+                ))}
               </div>
             </div>
           )}

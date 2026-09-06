@@ -5,7 +5,7 @@ import type { Classification } from "@/lib/types";
 import { classifyFromDelta, evalToProxyCp } from "@/lib/classify";
 import { defaultCommentary, defaultCommentaryZh } from "@/lib/build";
 import type { EngineAnalysis } from "@/lib/stockfish";
-import type { SimAgent } from "@/lib/simulation/agents";
+import { SIM_AGENTS, type SimAgent } from "@/lib/simulation/agents";
 import { greedyMove, randomMove } from "@/lib/simulation/heuristics";
 import type { LiveGameResult, LiveMove } from "@/lib/simulation/build-match";
 import { SimulationGame, type GameMove } from "@/lib/simulation/game";
@@ -37,6 +37,8 @@ export interface SimulationOptions {
   configured: Record<string, boolean>;
   /** Allow unconfigured LLM agents to play with the offline heuristic. */
   allowOfflineFallback: boolean;
+  /** Explicit opt-in for additional paid LLM narrative calls. */
+  enhanceNarrative: boolean;
   variant: ChessVariant;
   startFen: string;
 }
@@ -51,6 +53,16 @@ export interface SimulationState {
   result: LiveGameResult | null;
   error: string | null;
   offlineAgents: string[];
+  storyBeats: LiveStoryBeat[];
+}
+
+export interface LiveStoryBeat {
+  id: string;
+  ply: number;
+  title: string;
+  story: string;
+  storyZh: string;
+  status: "instant" | "enhancing" | "enhanced";
 }
 
 const ANALYSIS_DEPTH = 10;
@@ -80,6 +92,27 @@ function templateComment(
   };
 }
 
+function storyTitle(move: LiveMove): string {
+  if (move.checkmate) return "Checkmate";
+  if (move.check) return "The king is under fire";
+  if (move.classification === "brilliant") return "A brilliant idea";
+  if (move.classification === "blunder" || move.classification === "mistake") {
+    return "The position turns";
+  }
+  if (move.capture) return "The battle sharpens";
+  if (move.ply <= 12) return "The opening takes shape";
+  return "Pressure builds";
+}
+
+function deservesLlmNarration(move: LiveMove): boolean {
+  return Boolean(
+    move.checkmate ||
+      move.check ||
+      move.ply % 12 === 0 ||
+      ["brilliant", "mistake", "blunder"].includes(move.classification)
+  );
+}
+
 export function useSimulation(opts: SimulationOptions) {
   const {
     white,
@@ -102,11 +135,13 @@ export function useSimulation(opts: SimulationOptions) {
     result: null,
     error: null,
     offlineAgents: [],
+    storyBeats: [],
   });
 
   const cancelledRef = useRef(false);
   const pausedRef = useRef(false);
   const runningRef = useRef(false);
+  const generationRef = useRef(0);
   const optsRef = useRef(opts);
   optsRef.current = opts;
 
@@ -194,6 +229,8 @@ export function useSimulation(opts: SimulationOptions) {
     cancelledRef.current = false;
     pausedRef.current = false;
     runningRef.current = true;
+    const generation = ++generationRef.current;
+    const storyPrefix = `${Date.now().toString(36)}-${generation}`;
 
     const chess = new SimulationGame(variant, startFen);
     const moves: LiveMove[] = [];
@@ -213,6 +250,7 @@ export function useSimulation(opts: SimulationOptions) {
       result: null,
       error: null,
       offlineAgents: allowOfflineFallback ? offline : [],
+      storyBeats: [],
     });
 
     (async () => {
@@ -238,21 +276,31 @@ export function useSimulation(opts: SimulationOptions) {
         if (!mv) throw new Error(`Rules engine rejected selected move ${picked.uci}`);
         const fen = chess.fen();
         const ply = moves.length + 1;
+        const terminal = chess.isGameOver();
 
-        /* real engine evaluation of the new position */
+        /* Never ask an engine to search a terminal position. A few Stockfish
+           worker builds do not answer that request with `bestmove`. */
         let ev: EngineAnalysis | null = null;
-        try {
-          ev = await analyze(fen, ANALYSIS_DEPTH, variant);
-        } catch {
-          ev = null;
+        if (!terminal) {
+          try {
+            ev = await analyze(fen, ANALYSIS_DEPTH, variant);
+          } catch {
+            ev = null;
+          }
         }
 
         const evalCp = ev?.cp ?? null;
-        const evalMate = ev?.mate ?? null;
+        const evalMate = mv.san.includes("#")
+          ? color === "w"
+            ? 1
+            : -1
+          : ev?.mate ?? null;
 
         /* engine-based classification from the swing */
         let classification: Classification = "good";
-        if (ev && (evalCp !== null || evalMate !== null)) {
+        if (mv.san.includes("#")) {
+          classification = "best";
+        } else if (ev && (evalCp !== null || evalMate !== null)) {
           if (Math.ceil(ply / 2) <= 6) {
             classification = "book";
           } else {
@@ -303,6 +351,21 @@ export function useSimulation(opts: SimulationOptions) {
         };
         moves.push(record);
 
+        const narrator = optsRef.current.enhanceNarrative
+          ? SIM_AGENTS.find(
+              (candidate) => candidate.kind === "llm" && configured[candidate.id]
+            )
+          : undefined;
+        const enhance = Boolean(narrator && deservesLlmNarration(record));
+        const beat: LiveStoryBeat = {
+          id: `${storyPrefix}-${ply}`,
+          ply,
+          title: storyTitle(record),
+          story: comment,
+          storyZh: commentZh,
+          status: enhance ? "enhancing" : "instant",
+        };
+
         setState((s) => ({
           ...s,
           fen,
@@ -311,8 +374,55 @@ export function useSimulation(opts: SimulationOptions) {
           lastMove: { from: mv.from, to: mv.to },
           lastEval: ev
             ? { cp: evalCp ?? 0, mate: evalMate, depth: ev.depth }
-            : null,
+            : evalMate != null
+              ? { cp: 0, mate: evalMate, depth: 0 }
+              : s.lastEval,
+          storyBeats: [...s.storyBeats, beat],
         }));
+
+        if (enhance && narrator) {
+          void fetch("/api/llm/narrate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              agentId: narrator.id,
+              playerId: agent.id,
+              fen,
+              moveSan: mv.san,
+              evalCp,
+              mate: evalMate,
+              language: "en",
+              historySummary: moves
+                .slice(-10)
+                .map((move) => move.san)
+                .join(" "),
+            }),
+          })
+            .then(async (response) => {
+              if (!response.ok) throw new Error(`Narration failed (${response.status})`);
+              return response.json() as Promise<{ story?: string }>;
+            })
+            .then((reply) => {
+              if (generationRef.current !== generation || !reply.story) return;
+              setState((current) => ({
+                ...current,
+                storyBeats: current.storyBeats.map((item) =>
+                  item.id === beat.id
+                    ? { ...item, story: reply.story!, status: "enhanced" }
+                    : item
+                ),
+              }));
+            })
+            .catch(() => {
+              if (generationRef.current !== generation) return;
+              setState((current) => ({
+                ...current,
+                storyBeats: current.storyBeats.map((item) =>
+                  item.id === beat.id ? { ...item, status: "instant" } : item
+                ),
+              }));
+            });
+        }
       }
 
       if (cancelledRef.current) {
@@ -348,12 +458,14 @@ export function useSimulation(opts: SimulationOptions) {
   const stop = useCallback(() => {
     cancelledRef.current = true;
     pausedRef.current = false;
+    generationRef.current++;
   }, []);
 
   /* cleanup on unmount */
   useEffect(() => {
     return () => {
       cancelledRef.current = true;
+      generationRef.current++;
     };
   }, []);
 

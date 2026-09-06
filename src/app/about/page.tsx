@@ -39,7 +39,7 @@ const NOT_NOW = [
   "Real-time human vs human play",
   "Heavy community features",
   "Complex account systems",
-  "A complex database backend — v0.5 keeps curated match data local",
+  "A complex account or social backend — v0.5.1 only adds lightweight match persistence",
 ];
 
 export default function AboutPage() {
@@ -86,14 +86,16 @@ export default function AboutPage() {
         <div>
           <p className="eyebrow">Current Stage</p>
           <h2 className="mt-2 font-display text-2xl font-semibold">
-            v0.5 — Chess960
+            v0.5.1 — Reliable live stories
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             The current version is deliberately focused: three clearly labelled
             Demo Stories, a live Arena, real in-browser Stockfish, complete
-            Chess960 rules and one synchronized board-and-story experience.
-            There is no account system or database. The goal is simple: make
-            the user want to see what happens next.
+            Chess960 rules, live story beats and one synchronized
+            board-and-story experience. Completed Arena games can be saved
+            when the optional database connection is configured; there is no
+            account system. The goal is simple: make the user want to see what
+            happens next.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             Simple beats perfect. Demo beats architecture. A working prototype
